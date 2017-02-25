@@ -1,5 +1,5 @@
 #define DISP
-#define VIEW
+//#define VIEW
 #include <iostream>
 #include "levelset.h"
 #include "view.h"
@@ -34,7 +34,7 @@ int main() {
         }
     }
 
-    RUN("REINIT", ls.reinitialize(g, phi0, 200, 1, 0.5));
+    RUN("REINIT", ls.reinitialize(g, phi0, 400, 1, 0.5));
 
 
 
