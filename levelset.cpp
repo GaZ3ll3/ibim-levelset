@@ -326,20 +326,7 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
             }
         }
     }
-
-
-    for (index_t i = 0; i < Nx; ++i) {
-        for (index_t j = 0; j < Ny; ++j) {
-            for (index_t k = 0; k < Nz; ++k) {
-                g.data[i * Ny * Nz + j* Nz + k] = 10000.0;
-            }
-        }
-    }
-
-    for (auto I : IND) {
-        g.data[I] = 0.;
-    }
-
+    
     free(_window);
 
 
