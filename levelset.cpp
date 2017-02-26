@@ -175,7 +175,7 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
 
     int indices = 0;
     int total = 0;
-    int thickness = 1;
+    int thickness = 3;
     scalar_t thres = 1e-2;
 
     scalar_t *_window = (scalar_t *)malloc(DIM * shift * sizeof(scalar_t));
@@ -301,7 +301,7 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
     }
     free(window);
 
-    vector<scalar_t > IND;
+    vector<index_t > IND;
 
     total = 0;
 
@@ -320,7 +320,7 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
                     scalar_t nr = getNorm(_Dun, _Dup);
 
                     if (fabs(nr - 1.0) > thres) {
-                        IND.push_back(nr);
+                        IND.push_back(i * Ny * Nz + j * Nz + k);
                     }
                 }
             }
@@ -328,8 +328,16 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
     }
 
 
-    for (scalar_t I : IND) {
-        std::cout << I << std::endl;
+    for (index_t i = 0; i < Nx; ++i) {
+        for (index_t j = 0; j < Ny; ++j) {
+            for (index_t k = 0; k < Nz; ++k) {
+                g.data[i * Ny * Nz + j* Nz + k] = 10000.0;
+            }
+        }
+    }
+
+    for (auto I : IND) {
+        g.data[I] = 0.;
     }
 
     free(_window);

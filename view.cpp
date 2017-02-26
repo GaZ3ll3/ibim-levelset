@@ -110,7 +110,7 @@ void view::_levelset() {
         for (iX =1; iX < lx-1; ++iX) {
             for (iY = 1; iY < ly-1; ++iY) {
                 for (iZ = 1; iZ < lz-1; ++iZ) {
-                    if (fabs(phi->get(iX, iY, iZ)) < 1 * dx) {
+                    if (fabs(phi->get(iX, iY, iZ)) < 3 * dx) {
                         count++;
                         point P = {
                                 sx + iX * dx,

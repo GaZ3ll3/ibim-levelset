@@ -13,7 +13,7 @@ int main() {
 
     scalar_t grid_lo = -300.0, grid_hi = 300;
 
-    index_t size = 256;
+    index_t size = 384;
     scalar_t dx = (grid_hi - grid_lo) / scalar_t(size);
 
     levelset ls(size, size, size, 8, grid_lo, grid_lo, grid_lo, dx);
@@ -34,8 +34,19 @@ int main() {
         }
     }
 
-    RUN("REINIT", ls.reinitialize(g, phi0, 400, 1, 0.5));
+    RUN("REINIT", ls.reinitialize(g, phi0, 150, 1, 0.5));
 
+
+    for (index_t i = 0; i < ls.Nx; ++i) {
+        for (index_t j = 0; j < ls.Ny; ++j) {
+            for (index_t k = 0; k < ls.Nz; ++k) {
+                index_t  I = i * ls.Ny * ls.Nz + j * ls.Nz + k;
+                phi0.data[I] = g.data[I];
+            }
+        }
+    }
+
+    RUN("REINIT", ls.reinitialize(g, phi0, 150, 1, 0.5));
 
 
 
