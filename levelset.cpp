@@ -326,14 +326,17 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
             }
         }
     }
-    
+
     free(_window);
 
 
 }
 
 
-
+/// getNorm
+/// \param Dun : input backward gradient vector.
+/// \param Dup : input forward gradient vector.
+/// \return : norm
 scalar_t levelset::getNorm(point &Dun, point &Dup) {
     scalar_t val = 0.;
     for (int i = 0; i < DIM; ++i) {
@@ -343,6 +346,12 @@ scalar_t levelset::getNorm(point &Dun, point &Dup) {
     return sqrt(val);
 }
 
+/// setWindow
+/// \param g : input grid
+/// \param window : window pointer
+/// \param i : input x axis
+/// \param j : input y axis
+/// \param k : input z axis
 void levelset::setWindow(Grid &g, scalar_t *window, index_t i, index_t j, index_t k) {
     index_t half = shift / 2;
     index_t _loc = 0;
@@ -359,6 +368,11 @@ void levelset::setWindow(Grid &g, scalar_t *window, index_t i, index_t j, index_
     }
 }
 
+/// setGradient
+/// \param dir : input axis, 0, 1, 2 for x, y, z.
+/// \param window : window pointer.
+/// \param uxp : output forward gradient
+/// \param uxn : output backward gradient
 void levelset::setGradient(index_t dir, scalar_t *window, point &uxp, point &uxn) {
     scalar_t df, is0, is1, is2, a0, a1, a2, w0, w1, w2;
     scalar_t a,b,c,d,e,f;
