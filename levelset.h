@@ -47,6 +47,8 @@ public:
     void setGradient(index_t dir, scalar_t* window, point& uxp, point& uxn);
     scalar_t getNorm(point& Dun, point& Dup);
 
+    index_t countGradient(Grid& g, scalar_t thickness, scalar_t thres, scalar_t* window);
+
 
 };
 

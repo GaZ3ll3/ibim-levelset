@@ -72,10 +72,9 @@ void levelset::evolve(Grid &g, scalar_t final_t, scalar_t vel, scalar_t cfl_thre
     index_t num_steps = (index_t)(final_t / dt) + 1;
     dt = final_t / (scalar_t)num_steps;
 
-    std::cout << std::setw(15) << "INWARD CONFIG" << std::endl;
-
-    std::cout << std::setw(15)<< "dt" << " " << std::setw(8) << dt << " seconds" <<std::endl;
-    std::cout << std::setw(15)<< "STEPS" << " " << std::setw(8) << num_steps << " steps" <<std::endl;
+    std::cout << std::setw(15) << "INWARD SETTING" << std::endl;
+    std::cout << std::setw(15)<< "TIME" << " " << std::setw(8) << final_t << " seconds" <<std::endl;
+    std::cout << std::setw(15)<< "STEP" << " " << std::setw(8) << num_steps << " steps" <<std::endl;
 
 
     Grid u1(Nx, Ny, Nz);
@@ -156,11 +155,9 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
     index_t num_steps = (index_t)(final_t / dt) + 1;
     dt = final_t / (scalar_t)num_steps;
 
-    std::cout << std::setw(15) << "REINIT CONFIG" << std::endl;
-
-    std::cout << std::setw(15)<< "dt" << " " << std::setw(8) << dt << " seconds" <<std::endl;
-    std::cout << std::setw(15)<< "STEPS" << " " << std::setw(8) << num_steps << " steps" <<std::endl;
-
+    std::cout << std::setw(15) << "REINIT SETTING" << std::endl;
+    std::cout << std::setw(15)<< "TIME" << " " << std::setw(8) << final_t << " seconds" <<std::endl;
+    std::cout << std::setw(15)<< "STEP" << " " << std::setw(8) << num_steps << " steps" <<std::endl;
 
     Grid u1(Nx, Ny, Nz);
     Grid u2(Nx, Ny, Nz);
@@ -174,33 +171,10 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
     double* window = (double*)malloc((core)*DIM * shift * sizeof(double));
 
     int indices = 0;
-    int total = 0;
     int thickness = 3;
     scalar_t thres = 1e-2;
 
-    scalar_t *_window = (scalar_t *)malloc(DIM * shift * sizeof(scalar_t));
-    for (index_t i = 0; i < Nx; ++i) {
-        for (index_t j = 0; j < Ny; ++j) {
-            for (index_t k= 0; k < Nz; ++k) {
-
-                if ( fabs(g.get(i, j, k)) < thickness * dx ) {
-                    total++;
-                    point _Dun, _Dup;
-                    setWindow(g, _window, i, j, k);
-                    for (index_t dir = 0; dir < DIM; ++dir) {
-                        setGradient(dir, _window, _Dup, _Dun);
-                    }
-
-                    scalar_t nr = getNorm(_Dun, _Dup);
-
-                    if (fabs(nr - 1.0) > thres) {
-                        indices++;
-                    }
-                }
-            }
-        }
-    }
-    std::cout << "incorrect gradients :" << indices << " , " << total << std::endl;
+    indices = countGradient(g, thickness, thres, window);
 
     while (indices !=0 && step < num_steps) {
         step++;
@@ -268,66 +242,11 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
         }
 #pragma omp barrier
 
-        scalar_t *_window = (scalar_t *)malloc(DIM * shift * sizeof(scalar_t));
-
-        indices = 0;
-        total = 0;
-
-        for (index_t i = 0; i < Nx; ++i) {
-            for (index_t j = 0; j < Ny; ++j) {
-                for (index_t k= 0; k < Nz; ++k) {
-
-                    if ( fabs(g.get(i, j, k)) < thickness * dx) {
-                        total++;
-                        point _Dun, _Dup;
-                        setWindow(g, _window, i, j, k);
-                        for (index_t dir = 0; dir < DIM; ++dir) {
-                            setGradient(dir, _window, _Dup, _Dun);
-                        }
-
-                        scalar_t nr = getNorm(_Dun, _Dup);
-
-                        if (fabs(nr - 1.0) > thres) {
-                            indices++;
-                        }
-                    }
-                }
-            }
-        }
-        std::cout << "incorrect gradients :" << indices << " , " << total << std::endl;
-        free(_window);
-
+        indices = countGradient(g, thickness, thres, window);
 
     }
+
     free(window);
-
-    vector<index_t > IND;
-
-    total = 0;
-
-    for (index_t i = 0; i < Nx; ++i) {
-        for (index_t j = 0; j < Ny; ++j) {
-            for (index_t k= 0; k < Nz; ++k) {
-
-                if ( fabs(g.get(i, j, k)) < thickness * dx ) {
-                    total++;
-                    point _Dun, _Dup;
-                    setWindow(g, _window, i, j, k);
-                    for (index_t dir = 0; dir < DIM; ++dir) {
-                        setGradient(dir, _window, _Dup, _Dun);
-                    }
-
-                    scalar_t nr = getNorm(_Dun, _Dup);
-
-                    if (fabs(nr - 1.0) > thres) {
-                        IND.push_back(i * Ny * Nz + j * Nz + k);
-                    }
-                }
-            }
-        }
-    }
-
-    free(_window);
 
 
 }
@@ -431,6 +350,40 @@ void levelset::setGradient(index_t dir, scalar_t *window, point &uxp, point &uxn
                     (w2 - 0.5) * (b - 2 * c + d) / 6.0;
 
     uxn.data[dir] /= dx;
+}
+
+index_t levelset::countGradient(Grid &g, scalar_t thickness, scalar_t thres, scalar_t* _window) {
+    auto core = omp_get_max_threads();
+    omp_set_num_threads(core);
+
+    point _Dun, _Dup;
+
+    index_t total = 0;
+    index_t indices = 0;
+
+    for (index_t i = 0; i < Nx; ++i) {
+        for (index_t j = 0; j < Ny; ++j) {
+            for (index_t k= 0; k < Nz; ++k) {
+                if ( fabs(g.get(i, j, k)) < thickness * dx ) {
+                    total++;
+                    setWindow(g, _window, i, j, k);
+                    for (index_t dir = 0; dir < DIM; ++dir) {
+                        setGradient(dir, _window, _Dup, _Dun);
+                    }
+
+                    scalar_t nr = getNorm(_Dun, _Dup);
+
+                    if (fabs(nr - 1.0) > thres) {
+                            indices++;
+                    }
+                }
+            }
+        }
+    }
+
+    std::cout << "quality ratio : " << (indices) << " / " << (total)  << " = " << scalar_t (indices) / scalar_t(total)<< std::endl;
+
+    return indices;
 }
 
 
