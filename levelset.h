@@ -32,11 +32,11 @@ public:
     index_t Nz;
     index_t bandwidth;
     index_t shift;
-    vector<index_t> band;
 
+    index_t thickness;
+    scalar_t thres;
 
     levelset(index_t _Nx, index_t _Ny, index_t _Nz, index_t  _band, scalar_t _sx, scalar_t _sy,scalar_t _sz, scalar_t _dx);
-    levelset(index_t _Nx, index_t _Ny, index_t _Nz, scalar_t _sx, scalar_t _sy,scalar_t _sz, scalar_t _dx);
 
     ~levelset();
     void expand(Molecule& mol, Grid &g, scalar_t probe);
@@ -50,6 +50,13 @@ public:
     index_t countGradient(Grid& g, scalar_t thickness, scalar_t thres, scalar_t* window);
 
 
+};
+
+class Surface {
+public:
+    Surface(Grid& g, levelset& ls);
+    vector<point> nodes;
+    vector<point> normals;
 };
 
 

@@ -42,10 +42,16 @@ levelset::levelset(index_t _Nx, index_t _Ny, index_t _Nz, index_t _band, scalar_
     dx = _dx; Nx = _Nx; Ny = _Ny; Nz = _Nz;
     sx = _sx; sy = _sy; sz = _sz; bandwidth = _band;
     shift = 7; // for WENO5.
+    thickness = 3;
+    thres = 1e-2;
 }
 
 
-levelset::~levelset() {}
+levelset::~levelset() {
+#ifdef DEBUG
+    std::cout << "destructing levelset." << std::endl;
+#endif
+}
 
 void levelset::expand(Molecule &mol, Grid &g, scalar_t probe) {
     for (index_t aId = 0; aId < (index_t)mol.centers.size();++aId) {
@@ -171,8 +177,6 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
     double* window = (double*)malloc((core)*DIM * shift * sizeof(double));
 
     int indices = 0;
-    int thickness = 3;
-    scalar_t thres = 1e-2;
 
     indices = countGradient(g, thickness, thres, window);
 
@@ -353,9 +357,6 @@ void levelset::setGradient(index_t dir, scalar_t *window, point &uxp, point &uxn
 }
 
 index_t levelset::countGradient(Grid &g, scalar_t thickness, scalar_t thres, scalar_t* _window) {
-    auto core = omp_get_max_threads();
-    omp_set_num_threads(core);
-
     point _Dun, _Dup;
 
     index_t total = 0;
@@ -387,3 +388,45 @@ index_t levelset::countGradient(Grid &g, scalar_t thickness, scalar_t thres, sca
 }
 
 
+
+Surface::Surface(Grid& g, levelset &ls) {
+
+    point _Dun, _Dup;
+
+    scalar_t* _window =  (double*)malloc(DIM * ls.shift * sizeof(double));
+
+    for (index_t i = 0; i < ls.Nx; ++i) {
+        for (index_t j = 0; j < ls.Ny; ++j) {
+            for (index_t k= 0; k < ls.Nz; ++k) {
+                if ( fabs(g.get(i, j, k)) < ls.thickness * ls.dx ) {
+                    ls.setWindow(g, _window, i, j, k);
+                    for (index_t dir = 0; dir < DIM; ++dir) {
+                        ls.setGradient(dir, _window, _Dup, _Dun);
+                    }
+
+                    /*
+                     * current gradient is qualified.
+                     */
+                    _Dun = _Dun + _Dup;
+                    _Dun = _Dun * 0.5;
+
+                    point P = {
+                            ls.sx + i * ls.dx,
+                            ls.sy + j * ls.dx,
+                            ls.sz + k * ls.dx
+                    };
+
+                    scalar_t dist = g.get(i, j, k);
+
+                    P = P - _Dun * dist;
+
+                    nodes.push_back(P);
+                    normals.push_back(_Dun);
+
+                }
+            }
+        }
+    }
+
+    free(_window);
+}

@@ -1,5 +1,5 @@
 #define DISP
-#define VIEW
+//#define VIEW
 #include <iostream>
 #include "levelset.h"
 #include "view.h"
@@ -48,11 +48,11 @@ int main() {
 
     RUN("REINIT", ls.reinitialize(g, phi0, 30, 1, 0.5));
 
-
+    Surface surf(g, ls);
 
 #ifdef VIEW
     view& v = view::getInstance(2);
-    v.loadLevelSet(ls, g);
+    v.loadLevelSet(g, ls, surf);
     v.run();
 #endif
 

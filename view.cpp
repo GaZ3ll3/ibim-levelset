@@ -73,6 +73,10 @@ void view::_key(unsigned char k, int x, int y) {
     else if (k == 's') rotate_x -= rotate_step;
     else if (k == 'q') zoom *= (1.0 + zoom_step);
     else if (k == 'e') zoom *= (1.0 - zoom_step);
+    else if (k == 'z') {
+        if (tag == '1') tag = '0';
+        else tag = '1';
+    }
 
     glutPostRedisplay();
 }
@@ -107,33 +111,51 @@ void view::_levelset() {
     int count = 0;
 
     if (!cached) {
-        for (iX =1; iX < lx-1; ++iX) {
-            for (iY = 1; iY < ly-1; ++iY) {
-                for (iZ = 1; iZ < lz-1; ++iZ) {
-                    if (fabs(phi->get(iX, iY, iZ)) < 3 * dx) {
-                        count++;
-                        point P = {
-                                sx + iX * dx,
-                                sy + iY * dx,
-                                sz + iZ * dx
-                        };
-                        scalar_t r = dx / 2.0;
-                        cachePoints.push_back(P);
-                        cacheRadius.push_back(r);
-                    }
-                }
-            }
+
+        for (auto id = 0; id < surf->nodes.size(); ++id) {
+            scalar_t r = dx / 2.0;
+            cachePoints.push_back(surf->nodes[id]);
+            cacheRadius.push_back(r*0.1);
         }
+//        for (iX =1; iX < lx-1; ++iX) {
+//            for (iY = 1; iY < ly-1; ++iY) {
+//                for (iZ = 1; iZ < lz-1; ++iZ) {
+//                    if (fabs(phi->get(iX, iY, iZ)) < ls->thickness * dx) {
+//                        count++;
+//                        /*
+//                         * calculates the gradient here.
+//                         *
+//                         * instead of using multiple cores, we use single core here for
+//                         * rendering images.
+//                         */
+//                        point P = {
+//                                sx + iX * dx,
+//                                sy + iY * dx,
+//                                sz + iZ * dx
+//                        };
+//
+//                        scalar_t r = dx / 2.0;
+//                        cachePoints.push_back(P);
+//                        cacheRadius.push_back(r);
+//                    }
+//                }
+//            }
+//        }
         cached = true;
         std::cout << "boundary size : " << cachePoints.size() << std::endl;
     }
     else {
         for (index_t i = 0; i < (index_t )cachePoints.size(); ++i) {
-//            if (cachePoints[i].data[1] > -20)
-            _cube(cachePoints[i], cacheRadius[i]);
+            if (tag == '1'){
+                if (cachePoints[i].data[1] > -20) {
+                    _cube(cachePoints[i], cacheRadius[i]);
+                }
+            }
+            else {
+                _cube(cachePoints[i], cacheRadius[i]);
+            }
         }
     }
-
 
 }
 

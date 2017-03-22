@@ -16,6 +16,7 @@ class view {
 private:
     Grid* phi;
     levelset* ls;
+    Surface* surf;
     bool cached;
     char tag;
     vector<point> cachePoints;
@@ -34,9 +35,16 @@ private:
         zoom_step = 0.1;
         cached = false;
         tag = flag;
+
     }
 
-    ~view() {phi = nullptr; ls = nullptr;}
+    ~view() {
+#ifdef DEBUG
+        std::cout << "destructing view." << std::endl;
+#endif
+        phi = nullptr; ls = nullptr;
+        surf = nullptr;
+    }
 
 
 protected:
@@ -54,9 +62,10 @@ public:
         return viewInstance;
     }
 
-    void loadLevelSet(levelset& _ls, Grid& _phi) {
+    void loadLevelSet(Grid& _phi, levelset& _ls, Surface& _surf) {
         phi = &_phi;
-        ls = &_ls;
+        ls =&_ls;
+        surf = &_surf;
     }
 
     void run();
