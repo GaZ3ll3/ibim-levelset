@@ -4,7 +4,7 @@
 
 #include "view.h"
 
-void view::_cube(point& p, scalar_t r) {
+void view::_cube(ls_point& p, scalar_t r) {
     GLfloat front  = (GLfloat) (p.data[0] - r);
     GLfloat back   = (GLfloat) (p.data[0] + r);
     GLfloat left   = (GLfloat) (p.data[1] - r);
@@ -128,7 +128,7 @@ void view::_levelset() {
 //                         * instead of using multiple cores, we use single core here for
 //                         * rendering images.
 //                         */
-//                        point P = {
+//                        ls_point P = {
 //                                sx + iX * dx,
 //                                sy + iY * dx,
 //                                sz + iZ * dx

@@ -63,7 +63,7 @@ void levelset::expand(Molecule &mol, Grid &g, scalar_t probe) {
         for (int a = icx - r; a <= icx + r; ++a) {
             for (int b = icy - r; b <= icy + r; ++b) {
                 for (int c = icz - r; c<= icz + r; ++c) {
-                    point grid_p = {sx + a * dx, sy + b * dx, sz + c * dx};
+                    ls_point grid_p = {sx + a * dx, sy + b * dx, sz + c * dx};
                     scalar_t dist = (mol.radii[aId] + probe) - norm(grid_p - mol.centers[aId]) ;
                     dist = max(dist, g.get(a, b,c));
                     g.set(dist, a, b, c);
@@ -87,7 +87,7 @@ void levelset::evolve(Grid &g, scalar_t final_t, scalar_t vel, scalar_t cfl_thre
     Grid u2(Nx, Ny, Nz);
 
     index_t step = 0;
-    point Dup, Dun;
+    ls_point Dup, Dun;
 
     auto core = omp_get_max_threads();
     omp_set_num_threads(core);
@@ -169,7 +169,7 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
     Grid u2(Nx, Ny, Nz);
 
     index_t step = 0;
-    point Dup, Dun;
+    ls_point Dup, Dun;
 
     auto core = omp_get_max_threads();
     omp_set_num_threads(core);
@@ -260,7 +260,7 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
 /// \param Dun : input backward gradient vector.
 /// \param Dup : input forward gradient vector.
 /// \return : norm
-scalar_t levelset::getNorm(point &Dun, point &Dup) {
+scalar_t levelset::getNorm(ls_point &Dun, ls_point &Dup) {
     scalar_t val = 0.;
     for (int i = 0; i < DIM; ++i) {
         Dun.data[i] = max((Dun.data[i] > 0. ? Dun.data[i] : 0.), (Dup.data[i] < 0. ? -Dup.data[i] : 0.));
@@ -296,7 +296,7 @@ void levelset::setWindow(Grid &g, scalar_t *window, index_t i, index_t j, index_
 /// \param window : window pointer.
 /// \param uxp : output forward gradient
 /// \param uxn : output backward gradient
-void levelset::setGradient(index_t dir, scalar_t *window, point &uxp, point &uxn) {
+void levelset::setGradient(index_t dir, scalar_t *window, ls_point &uxp, ls_point &uxn) {
     scalar_t df, is0, is1, is2, a0, a1, a2, w0, w1, w2;
     scalar_t a,b,c,d,e,f;
     scalar_t EPS_LS = 1E-6;
@@ -357,7 +357,7 @@ void levelset::setGradient(index_t dir, scalar_t *window, point &uxp, point &uxn
 }
 
 index_t levelset::countGradient(Grid &g, scalar_t thickness, scalar_t thres, scalar_t* _window) {
-    point _Dun, _Dup;
+    ls_point _Dun, _Dup;
 
     index_t total = 0;
     index_t indices = 0;
@@ -391,14 +391,15 @@ index_t levelset::countGradient(Grid &g, scalar_t thickness, scalar_t thres, sca
 
 Surface::Surface(Grid& g, levelset &ls) {
 
-    point _Dun, _Dup;
+    ls_point _Dun, _Dup;
 
     scalar_t* _window =  (double*)malloc(DIM * ls.shift * sizeof(double));
+    scalar_t tube_width = ls.thickness * ls.dx;
 
     for (index_t i = 0; i < ls.Nx; ++i) {
         for (index_t j = 0; j < ls.Ny; ++j) {
             for (index_t k= 0; k < ls.Nz; ++k) {
-                if ( fabs(g.get(i, j, k)) < ls.thickness * ls.dx ) {
+                if ( fabs(g.get(i, j, k)) <  tube_width) {
                     ls.setWindow(g, _window, i, j, k);
                     for (index_t dir = 0; dir < DIM; ++dir) {
                         ls.setGradient(dir, _window, _Dup, _Dun);
@@ -407,10 +408,9 @@ Surface::Surface(Grid& g, levelset &ls) {
                     /*
                      * current gradient is qualified.
                      */
-                    _Dun = _Dun + _Dup;
-                    _Dun = _Dun * 0.5;
+                    _Dun = (_Dun + _Dup) * 0.5;
 
-                    point P = {
+                    ls_point P = {
                             ls.sx + i * ls.dx,
                             ls.sy + j * ls.dx,
                             ls.sz + k * ls.dx
@@ -422,6 +422,12 @@ Surface::Surface(Grid& g, levelset &ls) {
 
                     nodes.push_back(P);
                     normals.push_back(_Dun);
+                    /*
+                     * calculates the weight according to the distance.
+                     */
+                    weight.push_back(0.5 * (1.0 + cos(M_PI * dist/tube_width)) / tube_width);
+
+
 
                 }
             }

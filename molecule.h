@@ -5,16 +5,16 @@
 #ifndef MOLECULE_H
 #define MOLECULE_H
 
-#include "point.h"
+#include "ls_point.h"
 
 class Molecule {
 public:
-    vector<point> centers;
+    vector<ls_point> centers;
     vector<scalar_t > radii;
     vector<scalar_t > charges;
     vector<vector<index_t >> adjacent;
 
-    point center;
+    ls_point center;
     scalar_t radius;
     index_t N;
 
@@ -35,7 +35,7 @@ public:
                         tokens.push_back(buf);
                     }
 
-                    centers.push_back(point(
+                    centers.push_back(ls_point(
                             std::stod(tokens[5]),
                             std::stod(tokens[6]),
                             std::stod(tokens[7])
@@ -68,23 +68,23 @@ public:
     }
     void getCenter() {
         assert(N > 0);
-        point minP = {
-                centers[0].data[0] + radii[0],
-                centers[0].data[1] + radii[0],
-                centers[0].data[2] + radii[0]};
-        point maxP = {
+        ls_point minP = {
                 centers[0].data[0] - radii[0],
                 centers[0].data[1] - radii[0],
                 centers[0].data[2] - radii[0]};
+        ls_point maxP = {
+                centers[0].data[0] + radii[0],
+                centers[0].data[1] + radii[0],
+                centers[0].data[2] + radii[0]};
 
         for (int i = 1; i < N; ++i) {
-            point current_max_P = {
+            ls_point current_max_P = {
                     centers[i].data[0] + radii[i],
                     centers[i].data[1] + radii[i],
                     centers[i].data[2] + radii[i]
             };
 
-            point current_min_P = {
+            ls_point current_min_P = {
                     centers[i].data[0] - radii[i],
                     centers[i].data[1] - radii[i],
                     centers[i].data[2] - radii[i]
@@ -106,7 +106,6 @@ public:
                         0.5 * (maxP.data[1] - minP.data[1]),
                         0.5 * (maxP.data[2] - minP.data[2]))
         );
-
     }
 
 
@@ -119,6 +118,10 @@ public:
             centers[i].data[2] = s * (centers[i].data[2] - center.data[2]);
             radii[i] = s * radii[i];
         }
+
+        std::cout << std::setw(15)<< "ATOMS" << " " << std::setw(8) << N  <<std::endl;
+
+
         return s;
     }
 };

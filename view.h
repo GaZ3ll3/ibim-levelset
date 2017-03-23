@@ -19,10 +19,10 @@ private:
     Surface* surf;
     bool cached;
     char tag;
-    vector<point> cachePoints;
+    vector<ls_point> cachePoints;
     vector<scalar_t> cacheRadius;
 
-    void _cube(point& p, scalar_t r);
+    void _cube(ls_point& p, scalar_t r);
     void _key(unsigned char k, int x, int y);
     void _display();
     void _levelset();
