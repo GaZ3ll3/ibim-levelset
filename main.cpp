@@ -35,7 +35,7 @@ int main() {
         }
     }
 
-    RUN("REINIT", ls.reinitialize(g, phi0, 60, 1, 0.5));
+    RUN("REINIT", ls.reinitialize(g, phi0, 30, 1, 0.5));
 
 
     for (index_t i = 0; i < ls.Nx; ++i) {
@@ -47,7 +47,7 @@ int main() {
         }
     }
 
-    RUN("REINIT", ls.reinitialize(g, phi0, 60, 1, 0.5));
+    RUN("REINIT", ls.reinitialize(g, phi0, 30, 1, 0.5));
 
     Surface surf(g, ls);
 

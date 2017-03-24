@@ -50,8 +50,8 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     /*
      * setup for FMM.
      */
-    index_t np = 4;
-    index_t maxPoint = 160;
+    index_t np = 8;
+    index_t maxPoint = 320;
     index_t maxLevel = 10;
 
     scalar_t kappa = 0.;
@@ -60,7 +60,7 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
 
     index_t  N = (index_t) source.size();
 
-    scalar_t vacant_radius = 3 * dx;
+    scalar_t vacant_radius = 2 * dx;
 
     scalar_t area = std::accumulate(weight.begin(), weight.end(), 0.);
     std::cout << std::setw(15)<< "AREA" << " " << std::setw(8) << area << " A^2" <<std::endl;
