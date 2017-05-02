@@ -14,7 +14,7 @@ int main() {
 
     scalar_t grid_lo = -300.0, grid_hi = 300;
 
-    index_t size = 128;
+    index_t size = 64;
     scalar_t dx = (grid_hi - grid_lo) / scalar_t(size);
 
     levelset ls(size, size, size, 8, grid_lo, grid_lo, grid_lo, dx);
@@ -35,7 +35,7 @@ int main() {
         }
     }
 
-    RUN("REINIT", ls.reinitialize(g, phi0, 30, 1, 0.5));
+    RUN("REINIT", ls.reinitialize(g, phi0, 60, 1, 0.5));
 
 
     for (index_t i = 0; i < ls.Nx; ++i) {
@@ -47,7 +47,20 @@ int main() {
         }
     }
 
-    RUN("REINIT", ls.reinitialize(g, phi0, 30, 1, 0.5));
+    RUN("REINIT", ls.reinitialize(g, phi0, 60, 1, 0.5));
+
+    /*
+     * another run for inclusion removal.
+     *
+     * only to locate exterior point by marching from corner. And then
+     * march the whole tube to take the tube out.
+     *
+     * use BFS.
+     */
+
+    // todo: make the input as file.
+    // todo: "REINIT" should take another parameter or threshold for stopping criteria.
+
 
     Surface surf(g, ls);
 

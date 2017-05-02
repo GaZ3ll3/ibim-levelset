@@ -50,17 +50,17 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     /*
      * setup for FMM.
      */
-    index_t np = 8;
-    index_t maxPoint = 320;
+    index_t np = 4;
+    index_t maxPoint = 160;
     index_t maxLevel = 10;
 
-    scalar_t kappa = 0.;
+    scalar_t kappa = 1.0;
     scalar_t dE = 80.0;
     scalar_t dI = 2.0;
 
     index_t  N = (index_t) source.size();
 
-    scalar_t vacant_radius = 2 * dx;
+    scalar_t vacant_radius = dx;
 
     scalar_t area = std::accumulate(weight.begin(), weight.end(), 0.);
     std::cout << std::setw(15)<< "AREA" << " " << std::setw(8) << area << " A^2" <<std::endl;
@@ -68,7 +68,10 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     auto eval_G0 = [&](point& a, point& b) {
         scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
         scalar_t r = sqrt(d);
-        if (r < vacant_radius) return 0.;
+        if (r < vacant_radius) {
+            return 1.0/4.0/M_PI/vacant_radius;
+            //return 0.;
+        }
         else {
             return 1.0 / 4.0 / M_PI / r;
         }
@@ -79,7 +82,10 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     auto eval_Gk = [&](point& a, point& b) {
         scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
         scalar_t r = sqrt(d);
-        if (r < vacant_radius) return 0.;
+        if (r < vacant_radius) {
+            return (1 - exp(-kappa * vacant_radius))/kappa/4.0/M_PI/vacant_radius/vacant_radius;
+            //return 0.;
+        }
         else {
             return exp(-kappa * r) / 4.0 / M_PI / r;
         }
@@ -195,10 +201,106 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     }
 
 
-    GMRES(FullMap, start, load, 20, 200, 1e-5);
+    GMRES(FullMap, start, load, 20, 100, 1e-3);
 
     /*
      * solution is stored in start.
+     * output to file.
      */
+    std::ofstream potentialFile;
+    potentialFile.open("../data/test.pot"+ std::to_string(g.Nx) +std::to_string(g.Ny)+std::to_string(g.Nz));
+
+    for (int id = 0; id < 2 * N; ++id) {
+        potentialFile << start(id) << "\n";
+    }
+    potentialFile.close();
+
+    /*
+     * calculate polarization energy
+     */
+    vector<point> target_centers;
+
+    for (int id = 0; id < mol.N; ++id) {
+        target_centers.push_back(
+                {
+                    mol.centers[id].data[0]/rescale,
+                    mol.centers[id].data[1]/rescale,
+                    mol.centers[id].data[2]/rescale
+                }
+        );
+
+    }
+
+    auto polarizeMap = [&](vector<point>& _source, vector<point>& _target, vector<scalar_t>& _weight,
+                           vector<scalar_t>& _normalX,  vector<scalar_t>& _normalY, vector<scalar_t>& _normalZ, Vector& _phi) {
+
+        index_t _N = (index_t) _source.size();
+        index_t _M = (index_t) _target.size();
+
+        assert(_phi.row() == 2 * _N);
+        kernel G0, Gk, pG0x, pG0y, pG0z, pGkx, pGky, pGkz;
+
+        G0.eval = eval_G0; Gk.eval = eval_Gk;
+        pG0x.eval = eval_pG0x; pG0y.eval = eval_pG0y;
+        pG0z.eval = eval_pG0z; pGkx.eval = eval_pGkx;
+        pGky.eval = eval_pGky; pGkz.eval = eval_pGkz;
+
+
+        Vector pphi_pn(_N);
+        Vector phiX(_N), phiY(_N), phiZ(_N);
+
+        for (auto id = 0; id < _N; ++id) {
+            pphi_pn(id) = _phi(id + _N) * _weight[id];
+            phiX(id)    = _phi(id) * _normalX[id] * _weight[id];
+            phiY(id)    = _phi(id) * _normalY[id] * _weight[id];
+            phiZ(id)    = _phi(id) * _normalZ[id] * _weight[id];
+        }
+
+        G0.initialize(np, _source, _target, pphi_pn, _N, _M, maxPoint, maxLevel);
+        pG0x.initialize(np, _source, _target, phiX, _N, _M, maxPoint, maxLevel);
+        pG0y.initialize(np, _source, _target, phiY, _N, _M, maxPoint, maxLevel);
+        pG0z.initialize(np, _source, _target, phiZ, _N, _M, maxPoint, maxLevel);
+
+        Gk.initialize(np, _source, _target, pphi_pn, _N, _M, maxPoint, maxLevel);
+        pGkx.initialize(np, _source, _target, phiX, _N, _M, maxPoint, maxLevel);
+        pGky.initialize(np, _source, _target, phiY, _N, _M, maxPoint, maxLevel);
+        pGkz.initialize(np, _source, _target, phiZ, _N, _M, maxPoint, maxLevel);
+
+        Vector retG0, retGk, retG0X, retG0Y, retG0Z, retGkX, retGkY, retGkZ;
+        G0.run(retG0); Gk.run(retGk);
+        pG0x.run(retG0X); pG0y.run(retG0Y);
+        pG0z.run(retG0Z); pGkx.run(retGkX);
+        pGky.run(retGkY); pGkz.run(retGkZ);
+
+        Vector output(_M); setValue(output, 0.);
+
+        for (auto id = 0; id < _M; ++id) {
+            output(id) = dE / dI * (retGkX(id) + retGkY(id) + retGkZ(id) - retG0X(id) - retG0Y(id)
+                                    - retG0Z(id)) + retG0(id) - retGk(id);
+        }
+        return output;
+    };
+
+
+    Vector energy(mol.N); setValue(energy, 0.);
+    energy = polarizeMap(source, target_centers, weight, normalX, normalY, normalZ, start);
+
+    std::ofstream energyFile;
+    energyFile.open("../data/test.energy" + std::to_string(g.Nx) +std::to_string(g.Ny)+std::to_string(g.Nz));
+
+    for (int id = 0; id < energy.row(); ++id) {
+        energyFile << energy(id) << "\n";
+    }
+    energyFile.close();
+
+    scalar_t polarizedEnergy = 0.;
+    for (auto id = 0; id < energy.row(); ++id) {
+        polarizedEnergy += energy(id) * mol.charges[id];
+    }
+    polarizedEnergy *= 0.5;
+
+    std::cout << "polarized energy: " << std::setw(20) << std::scientific <<polarizedEnergy<<std::fixed << std::endl;
 
 }
+
+

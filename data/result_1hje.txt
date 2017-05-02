@@ -1,0 +1,8 @@
+
+
+
+============= Geometry =================    ======================= GMRES ========================  ================= ERROR=================    ====== TEST AREA ========   ======== TEST ENERGY =======
+
+Grid    Threshold   Quality    Thickness    GMRES Threshold     Iteration   Time Per Iteration (s)  Error (Phi)     Error (dPhi)    Error H1    AREA        ERROR IN AREA   ENERGY       ERROR IN ENERGY
+80      1E-3        0.44       2            1E-3                22          25                      -----           -----           -----       820.69      -----           -----        -----
+160     1E-3        0.15       2            1E-3                20          99                     -----           -----           -----        827.00      -----           -----        -----

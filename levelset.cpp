@@ -42,8 +42,8 @@ levelset::levelset(index_t _Nx, index_t _Ny, index_t _Nz, index_t _band, scalar_
     dx = _dx; Nx = _Nx; Ny = _Ny; Nz = _Nz;
     sx = _sx; sy = _sy; sz = _sz; bandwidth = _band;
     shift = 7; // for WENO5.
-    thickness = 3;
-    thres = 1e-2;
+    thickness = 2;
+    thres = 1e-3;
 }
 
 
@@ -79,7 +79,7 @@ void levelset::evolve(Grid &g, scalar_t final_t, scalar_t vel, scalar_t cfl_thre
     dt = final_t / (scalar_t)num_steps;
 
     std::cout << std::setw(15) << "INWARD SETTING" << std::endl;
-    std::cout << std::setw(15)<< "TIME" << " " << std::setw(8) << final_t << " seconds" <<std::endl;
+    std::cout << std::setw(15)<< "TIME" << " " << std::setw(8) << final_t << " units" <<std::endl;
     std::cout << std::setw(15)<< "STEP" << " " << std::setw(8) << num_steps << " steps" <<std::endl;
 
 
@@ -162,7 +162,7 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
     dt = final_t / (scalar_t)num_steps;
 
     std::cout << std::setw(15) << "REINIT SETTING" << std::endl;
-    std::cout << std::setw(15)<< "TIME" << " " << std::setw(8) << final_t << " seconds" <<std::endl;
+    std::cout << std::setw(15)<< "TIME" << " " << std::setw(8) << final_t << " units" <<std::endl;
     std::cout << std::setw(15)<< "STEP" << " " << std::setw(8) << num_steps << " steps" <<std::endl;
 
     Grid u1(Nx, Ny, Nz);
@@ -424,6 +424,8 @@ Surface::Surface(Grid& g, levelset &ls) {
                     normals.push_back(_Dun);
                     /*
                      * calculates the weight according to the distance.
+                     *
+                     * use cos weight.
                      */
                     weight.push_back(0.5 * (1.0 + cos(M_PI * dist/tube_width)) / tube_width);
 

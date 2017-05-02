@@ -1,0 +1,21 @@
+Comparison with actual solution of single atom.
+
+Number of Layer in the tube is 2 * thickness + 1.
+Quality is bad points / all points.
+Threshold is difference from 1.0 in gradient of distance function.
+
+
+Fast multipole uses np = 4 order Chebyshev polynomial.
+
+Observed :
+
+Area : 2nd order convergence.
+Error in phi: 1st order convergence (hitting the tolerance of FMM at grid of 320).
+Error in dphi: 1st order convergence.
+
+============= Geometry =================    ======================= GMRES ========================  ================= ERROR=================    ====== TEST AREA ========
+
+Grid    Threshold   Quality    Thickness    GMRES Threshold     Iteration   Time Per Iteration (s)  Error (Phi)     Error (dPhi)    Error H1    AREA        ERROR IN AREA
+80      1E-3        0          2            1E-4                3           45                      9.14E-3         8.70E-3         8.70E-3     12.575      6.86E-4
+160     1E-3        0          2            1E-4                3           184                     4.18E-3         4.49E-3         4.48E-3     12.569      2.10E-4
+320     1E-3        0          2            1E-4                3           594                     8.68E-3         2.73E-3         2.73E-3     12.567      5.09E-5

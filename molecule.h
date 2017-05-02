@@ -121,7 +121,6 @@ public:
 
         std::cout << std::setw(15)<< "ATOMS" << " " << std::setw(8) << N  <<std::endl;
 
-
         return s;
     }
 };

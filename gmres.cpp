@@ -72,9 +72,12 @@ int GMRES(const std::function<Vector(Vector &)> A, Vector &x, Vector &b, int m, 
 
     scalar_t beta = nrm2(r);
 
+    /*
+     * error is |Ax - b|/|b|
+     */
 
     std::cout << "=======================================" << std::endl;
-    std::cout << "    iter    |  abs error    |   time   " << std::endl;
+    std::cout << "    iter    |  rel error   |   time   " << std::endl;
 
     begin = std::chrono::steady_clock::now();
 
@@ -98,10 +101,11 @@ int GMRES(const std::function<Vector(Vector &)> A, Vector &x, Vector &b, int m, 
         s(0) = beta;
 
         for (i = 0; i < m && j <= _max_iter; i++, j++) {
+
             end = std::chrono::steady_clock::now();
             std::cout << std::setw(6) << j << std::setw(20) << std::scientific << resid
                       << std::setw(12) << std::fixed
-                      << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() / 1000000.0
+                      << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() / 1000000.0 << std::fixed
                       << std::endl;
             begin = std::chrono::steady_clock::now();
             w = A(v[i]);
@@ -133,6 +137,7 @@ int GMRES(const std::function<Vector(Vector &)> A, Vector &x, Vector &b, int m, 
             }
         }
         Update(x, i - 1, H, s, v);
+
         r = b;
         p = A(x);
 
