@@ -2,8 +2,10 @@
 //#define VIEW
 #include <iostream>
 #include "electric.h"
-#include "view.h"
 
+#ifdef VIEW
+#include "view.h"
+#endif
 
 int main() {
 
