@@ -276,8 +276,8 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
         Vector output(_M); setValue(output, 0.);
 
         for (auto id = 0; id < _M; ++id) {
-            output(id) = dE / dI * (retGkX(id) + retGkY(id) + retGkZ(id) - retG0X(id) - retG0Y(id)
-                                    - retG0Z(id)) + retG0(id) - retGk(id);
+            output(id) = dE / dI * (retGkX(id) + retGkY(id) + retGkZ(id)) - retG0X(id) - retG0Y(id)
+                                    - retG0Z(id) + retG0(id) - retGk(id);
         }
         return output;
     };

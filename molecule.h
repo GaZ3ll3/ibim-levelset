@@ -41,8 +41,8 @@ public:
                             std::stod(tokens[7])
                     ));
 
-                    radii.push_back(std::stof(tokens[9]));
-                    charges.push_back(std::stof(tokens[8]));
+                    radii.push_back(std::stod(tokens[9]));
+                    charges.push_back(std::stod(tokens[8]));
                 }
             }
             pdbFile.close();
