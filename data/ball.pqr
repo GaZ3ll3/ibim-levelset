@@ -63,6 +63,6 @@ REMARK   5 residue in the selected forcefield.
 REMARK   5
 REMARK   6 Total charge on this protein: 2.0000 e
 REMARK   6
-ATOM      1  N   PRO     1      -2.508   8.910  33.893 -0.32 10.0000
+ATOM      1  N   PRO     1      -2.508   8.910  33.893 1.0 10.0000
 TER
 END

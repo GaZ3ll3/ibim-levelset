@@ -1,5 +1,5 @@
 #define DISP
-//#define VIEW
+#define VIEW
 #include <iostream>
 #include "electric.h"
 
@@ -63,7 +63,7 @@ int main() {
      *
      * use BFS.
      */
-    
+
 
     Surface surf(g, ls);
 
@@ -87,7 +87,7 @@ int main() {
     v.run();
 #endif
 
-    electric(g, ls, surf, mol, s, cfg);
+//    electric(g, ls, surf, mol, s, cfg);
 
 
 
