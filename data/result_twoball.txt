@@ -1,3 +1,4 @@
 Grid     Threshold     Quality     Thickness     GMRES Threshold     Iteration     Time Per Iter     Area     Err Area      Energy
 80       1E-3          3.2E-2       3            3E-4                11            29                18.823   1.4E-3        -1.14303E-3
 160      1E-3          4.7E-3       3            3E-4                10            121               18.797   2.8E-3        -1.12821E-3
+320      1E-3          2.8E-4       3            3E-4                10            524               18.790   3.2E-3        -1.12051E-3

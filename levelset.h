@@ -7,6 +7,7 @@
 
 #include "utils.h"
 #include "molecule.h"
+#include "Config.h"
 
 class Grid {
 public:
@@ -36,7 +37,7 @@ public:
     index_t thickness;
     scalar_t thres;
 
-    levelset(index_t _Nx, index_t _Ny, index_t _Nz, index_t  _band, scalar_t _sx, scalar_t _sy,scalar_t _sz, scalar_t _dx);
+    levelset(index_t _Nx, index_t _Ny, index_t _Nz, index_t  _band, scalar_t _sx, scalar_t _sy,scalar_t _sz, scalar_t _dx, Config& cfg);
 
     ~levelset();
     void expand(Molecule& mol, Grid &g, scalar_t probe);

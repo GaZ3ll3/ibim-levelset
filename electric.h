@@ -8,7 +8,8 @@
 #include "bbfmm.h"
 #include "gmres.h"
 #include "levelset.h"
+#include "Config.h"
 
-void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t rescale);
+void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t rescale, Config& cfg);
 
 #endif //LEVELSET_ELECTRIC_H

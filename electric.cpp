@@ -6,7 +6,7 @@
 
 using namespace bbfmm;
 
-void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t rescale){
+void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t rescale, Config& cfg){
 
 #ifdef RUN_OMP
     omp_set_num_threads(omp_get_max_threads());
@@ -50,13 +50,13 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     /*
      * setup for FMM.
      */
-    index_t np = 4;
-    index_t maxPoint = 160;
-    index_t maxLevel = 10;
+    index_t np = atoi(cfg.options["fmm_np"].c_str());
+    index_t maxPoint = atoi(cfg.options["fmm_maxpoint"].c_str());
+    index_t maxLevel = atoi(cfg.options["fmm_maxlevel"].c_str());
 
-    scalar_t kappa = 1.0;
-    scalar_t dE = 80.0;
-    scalar_t dI = 2.0;
+    scalar_t kappa =atof(cfg.options["solvent_kappa"].c_str());
+    scalar_t dE = atof(cfg.options["solvent_dE"].c_str());
+    scalar_t dI = atof(cfg.options["solvent_dI"].c_str());
 
     index_t  N = (index_t) source.size();
 
@@ -83,6 +83,7 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
         scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
         scalar_t r = sqrt(d);
         if (r < vacant_radius) {
+            if (kappa == 0.) return 1.0/4.0/M_PI/vacant_radius;
             return (1 - exp(-kappa * vacant_radius))/kappa/4.0/M_PI/vacant_radius/vacant_radius;
             //return 0.;
         }
@@ -201,14 +202,14 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     }
 
 
-    GMRES(FullMap, start, load, 20, 100, 3e-4);
+    GMRES(FullMap, start, load, atoi(cfg.options["gmres_restart"].c_str()), atoi(cfg.options["gmres_maxiter"].c_str()), atof(cfg.options["gmres_tol"].c_str()));
 
     /*
      * solution is stored in start.
      * output to file.
      */
     std::ofstream potentialFile;
-    potentialFile.open("../data/test.pot"+ std::to_string(g.Nx) +std::to_string(g.Ny)+std::to_string(g.Nz));
+    potentialFile.open(cfg.options["potent_file"]);
 
     for (int id = 0; id < 2 * N; ++id) {
         potentialFile << start(id) << "\n";
@@ -286,7 +287,7 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     energy = polarizeMap(source, target_centers, weight, normalX, normalY, normalZ, start);
 
     std::ofstream energyFile;
-    energyFile.open("../data/test.energy" + std::to_string(g.Nx) +std::to_string(g.Ny)+std::to_string(g.Nz));
+    energyFile.open(cfg.options["energy_file"]);
 
     for (int id = 0; id < energy.row(); ++id) {
         energyFile << energy(id) << "\n";

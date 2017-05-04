@@ -38,12 +38,12 @@ void Grid::set(scalar_t val, index_t i, index_t j, index_t k) {
 
 
 
-levelset::levelset(index_t _Nx, index_t _Ny, index_t _Nz, index_t _band, scalar_t _sx, scalar_t _sy, scalar_t _sz, scalar_t _dx) {
+levelset::levelset(index_t _Nx, index_t _Ny, index_t _Nz, index_t _band, scalar_t _sx, scalar_t _sy, scalar_t _sz, scalar_t _dx, Config& cfg) {
     dx = _dx; Nx = _Nx; Ny = _Ny; Nz = _Nz;
     sx = _sx; sy = _sy; sz = _sz; bandwidth = _band;
     shift = 7; // for WENO5.
-    thickness = 3;
-    thres = 1e-3;
+    thickness = atoi(cfg.options["lvlset_thickness"].c_str());
+    thres = atof(cfg.options["lvlset_thres"].c_str());
 }
 
 

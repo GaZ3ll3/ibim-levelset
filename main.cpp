@@ -9,17 +9,19 @@
 
 int main() {
 
-    Molecule mol; mol.load("../data/twoball.pqr");
+    Config cfg;
+    std::ifstream cfgFile;cfgFile.open("../data/input.cfg", std::ifstream::in);
+    cfg.parse(cfgFile);cfgFile.close();
+
+    Molecule mol; mol.load(cfg.options["pqr_file"]);
 
     scalar_t s = mol.centralize(200.0); mol.getCenter();
     scalar_t pr = 1.4 * s;
-
     scalar_t grid_lo = -300.0, grid_hi = 300;
-
-    index_t size = 160;
+    index_t size = atoi(cfg.options["grid_size"].c_str());
     scalar_t dx = (grid_hi - grid_lo) / scalar_t(size);
 
-    levelset ls(size, size, size, 8, grid_lo, grid_lo, grid_lo, dx);
+    levelset ls(size, size, size, 8, grid_lo, grid_lo, grid_lo, dx, cfg);
 
     Grid g(-2.0 * size, ls.Nx, ls.Ny, ls.Nz);
     Grid phi0(0., ls.Nx, ls.Ny, ls.Nz);
@@ -37,7 +39,9 @@ int main() {
         }
     }
 
-    RUN("REINIT", ls.reinitialize(g, phi0, 60, 1, 0.8));
+
+
+    RUN("REINIT", ls.reinitialize(g, phi0, atoi(cfg.options["reinit_step"].c_str()), 1, 0.8));
 
 
     for (index_t i = 0; i < ls.Nx; ++i) {
@@ -49,7 +53,7 @@ int main() {
         }
     }
 
-    RUN("REINIT", ls.reinitialize(g, phi0, 60, 1, 0.8));
+    RUN("REINIT", ls.reinitialize(g, phi0, atoi(cfg.options["reinit_step"].c_str()), 1, 0.8));
 
     /*
      * another run for inclusion removal.
@@ -59,10 +63,7 @@ int main() {
      *
      * use BFS.
      */
-
-    // todo: make the input as file.
-    // todo: "REINIT" should take another parameter or threshold for stopping criteria.
-
+    
 
     Surface surf(g, ls);
 
@@ -86,7 +87,7 @@ int main() {
     v.run();
 #endif
 
-    electric(g, ls, surf, mol, s);
+    electric(g, ls, surf, mol, s, cfg);
 
 
 
