@@ -7,10 +7,14 @@
 #include "view.h"
 #endif
 
-int main() {
+int main(int argc, char* argv[]) {
+
+    if (argc <= 1) {
+        std::cout << "USE " <<argv[0] << " PATH_OF_CONFIG_FILE " << std::endl;
+    }
 
     Config cfg;
-    std::ifstream cfgFile;cfgFile.open("../data/input.cfg", std::ifstream::in);
+    std::ifstream cfgFile;cfgFile.open(argv[1], std::ifstream::in);
     cfg.parse(cfgFile);cfgFile.close();
 
     Molecule mol; mol.load(cfg.options["pqr_file"]);

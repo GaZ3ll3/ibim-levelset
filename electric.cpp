@@ -300,7 +300,7 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     }
     polarizedEnergy *= 0.5;
 
-    std::cout << "polarized energy: " << std::setw(20) << std::scientific <<polarizedEnergy<<std::fixed << std::endl;
+    std::cout << "polarized energy: " << std::setw(20) << std::scientific <<polarizedEnergy <<std::fixed << std::endl;
 
 }
 
