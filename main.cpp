@@ -14,7 +14,7 @@ int main() {
 
     scalar_t grid_lo = -300.0, grid_hi = 300;
 
-    index_t size = 64;
+    index_t size = 160;
     scalar_t dx = (grid_hi - grid_lo) / scalar_t(size);
 
     levelset ls(size, size, size, 8, grid_lo, grid_lo, grid_lo, dx);
@@ -35,7 +35,7 @@ int main() {
         }
     }
 
-    RUN("REINIT", ls.reinitialize(g, phi0, 60, 1, 0.5));
+    RUN("REINIT", ls.reinitialize(g, phi0, 60, 1, 0.8));
 
 
     for (index_t i = 0; i < ls.Nx; ++i) {
@@ -47,7 +47,7 @@ int main() {
         }
     }
 
-    RUN("REINIT", ls.reinitialize(g, phi0, 60, 1, 0.5));
+    RUN("REINIT", ls.reinitialize(g, phi0, 60, 1, 0.8));
 
     /*
      * another run for inclusion removal.
@@ -63,6 +63,20 @@ int main() {
 
 
     Surface surf(g, ls);
+
+//    std::ofstream gridFile;
+//    gridFile.open("../data/test.grid"+ std::to_string(g.Nx) +std::to_string(g.Ny)+std::to_string(g.Nz));
+//
+//    for (index_t i = 0; i < ls.Nx; ++i) {
+//        for (index_t j = 0; j < ls.Ny; ++j) {
+//            for (index_t k = 0; k < ls.Nz; ++k) {
+//                index_t  I = i * ls.Ny * ls.Nz + j * ls.Nz + k;
+//                gridFile << g.data[I] << "\n";
+//            }
+//        }
+//    }
+//    gridFile.close();
+
 
 #ifdef VIEW
     view& v = view::getInstance(2);

@@ -42,7 +42,7 @@ levelset::levelset(index_t _Nx, index_t _Ny, index_t _Nz, index_t _band, scalar_
     dx = _dx; Nx = _Nx; Ny = _Ny; Nz = _Nz;
     sx = _sx; sy = _sy; sz = _sz; bandwidth = _band;
     shift = 7; // for WENO5.
-    thickness = 2;
+    thickness = 3;
     thres = 1e-3;
 }
 
@@ -361,6 +361,7 @@ index_t levelset::countGradient(Grid &g, scalar_t thickness, scalar_t thres, sca
 
     index_t total = 0;
     index_t indices = 0;
+    scalar_t accum_error = 0.;
 
     for (index_t i = 0; i < Nx; ++i) {
         for (index_t j = 0; j < Ny; ++j) {
@@ -377,12 +378,14 @@ index_t levelset::countGradient(Grid &g, scalar_t thickness, scalar_t thres, sca
                     if (fabs(nr - 1.0) > thres) {
                             indices++;
                     }
+                    accum_error += fabs(nr - 1.0);
                 }
             }
         }
     }
 
-    std::cout << "quality ratio : " << (indices) << " / " << (total)  << " = " << scalar_t (indices) / scalar_t(total)<< std::endl;
+    std::cout << "quality ratio : " << std::setw(10) << (indices) << " / " <<std::setw(10)<< (total)  << " = " << std::setw(10) << scalar_t (indices) / scalar_t(total)
+              << ", L^1 rel error = " << scalar_t(accum_error)/ scalar_t (total)<< std::endl;
 
     return indices;
 }
@@ -417,7 +420,9 @@ Surface::Surface(Grid& g, levelset &ls) {
                     };
 
                     scalar_t dist = g.get(i, j, k);
-
+                    /*
+                     * projection
+                     */
                     P = P - _Dun * dist;
 
                     nodes.push_back(P);

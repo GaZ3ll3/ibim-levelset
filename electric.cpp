@@ -201,7 +201,7 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     }
 
 
-    GMRES(FullMap, start, load, 20, 100, 1e-3);
+    GMRES(FullMap, start, load, 20, 100, 3e-4);
 
     /*
      * solution is stored in start.
