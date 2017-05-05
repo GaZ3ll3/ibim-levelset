@@ -85,6 +85,10 @@ dkms.conf
 *.out
 *.app
 
+# Config
+*.cfg
+*.pqr
+
 .gitignore
 .idea/
 cmake-build-debug/

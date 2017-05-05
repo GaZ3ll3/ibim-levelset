@@ -119,11 +119,13 @@ int GMRES(const std::function<Vector(Vector &)> A, Vector &x, Vector &b, int m, 
             // ??? w / H(i+1, i)
 
             for (k = 0; k < i; k++)
-                ApplyPlaneRotation(H(k, i), H(k + 1, i), cs(k), sn(k));
+                ApplyPlaneRotation((scalar_t &) H(k, i), (scalar_t &) H(k + 1, i), (scalar_t &) cs(k),
+                                   (scalar_t &) sn(k));
 
-            GeneratePlaneRotation(H(i, i), H(i + 1, i), cs(i), sn(i));
-            ApplyPlaneRotation(H(i, i), H(i + 1, i), cs(i), sn(i));
-            ApplyPlaneRotation(s(i), s(i + 1), cs(i), sn(i));
+            GeneratePlaneRotation((scalar_t &) H(i, i), (scalar_t &) H(i + 1, i), (scalar_t &) cs(i),
+                                  (scalar_t &) sn(i));
+            ApplyPlaneRotation((scalar_t &) H(i, i), (scalar_t &) H(i + 1, i), (scalar_t &) cs(i), (scalar_t &) sn(i));
+            ApplyPlaneRotation((scalar_t &) s(i), (scalar_t &) s(i + 1), (scalar_t &) cs(i), (scalar_t &) sn(i));
 
             if ((resid = abs(s(i + 1)) / normb) < _tol) {
                 Update(x, i, H, s, v);

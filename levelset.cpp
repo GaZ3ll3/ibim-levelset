@@ -381,7 +381,8 @@ index_t levelset::countGradient(Grid &g, scalar_t thickness, scalar_t thres, sca
         }
     }
     if (display) {
-        std::cout << std::setw(15)<< "GRAD REL ERR" << " " << std::fixed  << std::setprecision(5)<< std::setw(8) << scalar_t(accum_error) / scalar_t(total) << std::endl;
+        std::cout << std::setw(15) << "GRAD REL ERR" << " " << std::scientific << std::setw(8)
+                  << scalar_t(accum_error) / scalar_t(total) << std::endl;
     }
 
     return indices;

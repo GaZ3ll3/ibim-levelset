@@ -32,7 +32,10 @@ void Config::parse(std::istream &cfgFile) {
             std::cout << "Incomplete configuration! Did you forget the space?" << std::endl;
         }
         else {
-            options[id] = val;
+            /*
+             * eliminate empty string key
+             */
+            if (line.size()) options[id] = val;
         }
 
     }
