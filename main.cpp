@@ -17,6 +17,8 @@ int main(int argc, char* argv[]) {
     std::ifstream cfgFile;cfgFile.open(argv[1], std::ifstream::in);
     cfg.parse(cfgFile);cfgFile.close();
 
+    cfg.print();
+
     Molecule mol; mol.load(cfg.options["pqr_file"]);
 
     scalar_t s = mol.centralize(200.0); mol.getCenter();
@@ -45,7 +47,7 @@ int main(int argc, char* argv[]) {
 
 
 
-    RUN("REINIT", ls.reinitialize(g, phi0, atoi(cfg.options["reinit_step"].c_str()), 1, 0.8));
+    RUN("REINIT 1st", ls.reinitialize(g, phi0, atoi(cfg.options["reinit_step"].c_str()), 1, 0.8));
 
 
     for (index_t i = 0; i < ls.Nx; ++i) {
@@ -57,7 +59,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    RUN("REINIT", ls.reinitialize(g, phi0, atoi(cfg.options["reinit_step"].c_str()), 1, 0.8));
+    RUN("REINIT 2nd", ls.reinitialize(g, phi0, atoi(cfg.options["reinit_step"].c_str()), 1, 0.8));
 
     /*
      * another run for inclusion removal.

@@ -47,6 +47,8 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
 
     }
 
+    std::cout << std::setw(15) <<"POINTS NUM"  << " " << std::setw(8) << source.size() << std::endl;
+
     /*
      * setup for FMM.
      */
@@ -63,7 +65,9 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     scalar_t vacant_radius = dx;
 
     scalar_t area = std::accumulate(weight.begin(), weight.end(), 0.);
-    std::cout << std::setw(15)<< "AREA" << " " << std::setw(8) << area << " A^2" <<std::endl;
+    std::cout << std::setw(15)<< "AREA APPROX" << " " << std::setw(8)<< area << " A^2" <<std::fixed<<std::endl;
+
+
 
     auto eval_G0 = [&](point& a, point& b) {
         scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);

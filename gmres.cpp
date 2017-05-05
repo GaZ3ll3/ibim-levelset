@@ -76,7 +76,7 @@ int GMRES(const std::function<Vector(Vector &)> A, Vector &x, Vector &b, int m, 
      * error is |Ax - b|/|b|
      */
 
-    std::cout << "=======================================" << std::endl;
+    std::cout << "=============== GMRES =================" << std::endl;
     std::cout << "    iter    |  rel error   |   time   " << std::endl;
 
     begin = std::chrono::steady_clock::now();

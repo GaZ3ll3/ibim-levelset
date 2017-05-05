@@ -37,3 +37,12 @@ void Config::parse(std::istream &cfgFile) {
 
     }
 }
+
+void Config::print(){
+    std::cout << std::setw(15) << "=============== OPTIONS ===============" << std::endl;
+    for (auto key:options) {
+        std::cout <<std::setw(15) <<  key.first << " = " << key.second << std::endl;
+    }
+    std::cout << std::setw(15) << "=======================================" << std::endl;
+}
+

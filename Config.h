@@ -18,6 +18,7 @@ public:
     ~Config();
     std::map<std::string, std::string> options;
     void parse(std::istream &cfgFile);
+    void print();
 };
 
 

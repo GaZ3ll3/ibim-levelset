@@ -78,9 +78,7 @@ void levelset::evolve(Grid &g, scalar_t final_t, scalar_t vel, scalar_t cfl_thre
     index_t num_steps = (index_t)(final_t / dt) + 1;
     dt = final_t / (scalar_t)num_steps;
 
-    std::cout << std::setw(15) << "INWARD SETTING" << std::endl;
-    std::cout << std::setw(15)<< "TIME" << " " << std::setw(8) << final_t << " units" <<std::endl;
-    std::cout << std::setw(15)<< "STEP" << " " << std::setw(8) << num_steps << " steps" <<std::endl;
+//    std::cout << std::setw(15)<< "INWARD" << " " << std::setw(8) << num_steps << " steps" <<std::endl;
 
 
     Grid u1(Nx, Ny, Nz);
@@ -161,9 +159,7 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
     index_t num_steps = (index_t)(final_t / dt) + 1;
     dt = final_t / (scalar_t)num_steps;
 
-    std::cout << std::setw(15) << "REINIT SETTING" << std::endl;
-    std::cout << std::setw(15)<< "TIME" << " " << std::setw(8) << final_t << " units" <<std::endl;
-    std::cout << std::setw(15)<< "STEP" << " " << std::setw(8) << num_steps << " steps" <<std::endl;
+//    std::cout << std::setw(15)<< "REINIT" << " " << std::setw(8) << num_steps << " steps" <<std::endl;
 
     Grid u1(Nx, Ny, Nz);
     Grid u2(Nx, Ny, Nz);
@@ -250,6 +246,7 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
 
     }
 
+    countGradient(g, thickness, thres, window, true);
     free(window);
 
 
@@ -356,7 +353,7 @@ void levelset::setGradient(index_t dir, scalar_t *window, ls_point &uxp, ls_poin
     uxn.data[dir] /= dx;
 }
 
-index_t levelset::countGradient(Grid &g, scalar_t thickness, scalar_t thres, scalar_t* _window) {
+index_t levelset::countGradient(Grid &g, scalar_t thickness, scalar_t thres, scalar_t* _window, bool display) {
     ls_point _Dun, _Dup;
 
     index_t total = 0;
@@ -383,9 +380,9 @@ index_t levelset::countGradient(Grid &g, scalar_t thickness, scalar_t thres, sca
             }
         }
     }
-
-    std::cout << "quality ratio : " << std::setw(10) << (indices) << " / " <<std::setw(10)<< (total)  << " = " << std::setw(10) << scalar_t (indices) / scalar_t(total)
-              << ", L^1 rel error = " << scalar_t(accum_error)/ scalar_t (total)<< std::endl;
+    if (display) {
+        std::cout << std::setw(15)<< "GRAD REL ERR" << " " << std::fixed  << std::setprecision(5)<< std::setw(8) << scalar_t(accum_error) / scalar_t(total) << std::endl;
+    }
 
     return indices;
 }
@@ -433,7 +430,6 @@ Surface::Surface(Grid& g, levelset &ls) {
                      * use cos weight.
                      */
                     weight.push_back(0.5 * (1.0 + cos(M_PI * dist/tube_width)) / tube_width);
-
 
 
                 }
