@@ -1,0 +1,5 @@
+===================== Geometry ================ ======================= GMRES ======================    ============= TESTS =============
+
+Grid   DOF      Threshold   GRAD ERR  Thickness  GMRES Threshold   Iteration   Time Per Iteration (s)    AREA            POLARIZED ENERGY
+320    442395   1E-3        2E-3       2         1E-3                                                    4988.1
+256    281610   1E-3        3E-3       2         1E-3                                                    4962.1

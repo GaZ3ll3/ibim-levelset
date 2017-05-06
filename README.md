@@ -1,11 +1,7 @@
 # Implicit Boundary Integral Method with FMM
 
-## setup files
-If the system does not have ``glut.h``, then need to use CMakeLists_noview.txt.
-
-- mv CMakeLists.txt CMakeLists.txt.bk
-- mv CMakeLists_noview.txt CMakeLists.txt
-
+## OpenBlas
+- OpenBlas has to be compiled with ``OPENMP=1``.
 ## Compile
 - mkdir build && cd build
 - cmake .. 

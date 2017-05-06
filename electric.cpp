@@ -30,7 +30,6 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
                     surf.nodes[id].data[2]/rescale
                 }
         );
-
         weight.push_back(surf.weight[id] * rescale * dx * SQR(dx));
 
         /*
@@ -41,7 +40,6 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
         normalZ.push_back(surf.normals[id].data[2]);
 
     }
-
     std::cout << std::setw(15) <<"POINTS NUM"  << " " << std::setw(8) << source.size() << std::endl;
 
     /*
@@ -191,9 +189,9 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     Vector load(2 * N); setValue(load, 0.);
     for (auto id = 0; id < N; ++id) {
         for (auto atom_id = 0; atom_id <  mol.N; ++atom_id) {
-            scalar_t d = SQR(source[id].x - mol.centers[atom_id].data[0]) +
-                         SQR(source[id].y - mol.centers[atom_id].data[1]) +
-                         SQR(source[id].z - mol.centers[atom_id].data[2]);
+            scalar_t d = SQR(source[id].x - mol.centers[atom_id].data[0] / rescale) +
+                         SQR(source[id].y - mol.centers[atom_id].data[1] / rescale) +
+                         SQR(source[id].z - mol.centers[atom_id].data[2] / rescale);
 
             scalar_t r = sqrt(d);
             load(id) += mol.charges[atom_id] / dI / 4.0 / M_PI / r;

@@ -88,8 +88,5 @@ int main(int argc, char* argv[]) {
 
     electric(g, ls, surf, mol, s, cfg);
 
-
-
-
     return 0;
 }

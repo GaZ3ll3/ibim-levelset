@@ -2,6 +2,14 @@ AREA: second order convergence.
 Energy: first order convergence.
 
 Grid     Threshold     Grad Err    Thickness     GMRES Threshold     Iteration     Time Per Iter     Area     Err Area      Energy
+64                     2.5E-4       1            1E-3                17                              18.769                 -6.67724E-3
+
+
+
+
+
+
+
 80       1E-3          1.0E-4       3            3E-4                8             8                 18.823   --            -1.20718E-3
 128      1E-3          4.0E-4       3            3e-4                8             15                18.802   --            -1.20265E-3
 160      1E-3          2.0E-5       3            3E-4                8             33                18.797   --            -1.20115E-3

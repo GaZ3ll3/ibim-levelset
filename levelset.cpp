@@ -410,6 +410,9 @@ index_t levelset::countGradient(Grid &g, scalar_t thickness, scalar_t thres, sca
     return indices;
 }
 
+/// build surface, remove inclusions.
+/// \param g
+/// \param ls
 Surface::Surface(Grid& g, levelset &ls) {
 
     ls_point _Dun, _Dup;
@@ -502,7 +505,7 @@ Surface::Surface(Grid& g, levelset &ls) {
     /*
      * set a value lying outside tube.
      */
-    auto inclusion_value = -(1.0 + tube_width);
+    auto inclusion_value = -(1. + tube_width);
     int cnt = 0;
     for (index_t id = 0; id < ls.Nx * ls.Ny * ls.Nz; ++id) {
         if (!visited[id] && fabs(g.data[id]) < tube_width) {
@@ -544,7 +547,10 @@ Surface::Surface(Grid& g, levelset &ls) {
                     /*
                      * calculates the weight according to the distance.
                      *
-                     * use cos weight.
+                     * 1. cos weight.
+                     * 2. triangle weight
+                     * 3. infinitely smooth weight
+                     *
                      */
                     weight.push_back(0.5 * (1.0 + cos(M_PI * dist/tube_width)) / tube_width);
 
