@@ -7,11 +7,6 @@
 using namespace bbfmm;
 
 void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t rescale, Config& cfg){
-
-#ifdef RUN_OMP
-    omp_set_num_threads(omp_get_max_threads());
-#endif
-
     vector<point> source, target;
     vector<scalar_t > weight, normalX, normalY, normalZ;
 

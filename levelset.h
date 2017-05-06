@@ -20,6 +20,8 @@ public:
     ~Grid();
     scalar_t get(index_t i, index_t j, index_t k);
     void set(scalar_t val, index_t i, index_t j, index_t k);
+
+    void output(std::string filename);
 };
 
 class levelset {
@@ -49,13 +51,13 @@ public:
     scalar_t getNorm(ls_point& Dun, ls_point& Dup);
 
     index_t countGradient(Grid& g, scalar_t thickness, scalar_t thres, scalar_t* window, bool display= false);
-
-
 };
 
 class Surface {
 public:
     Surface(Grid& g, levelset& ls);
+
+    ~Surface();
     vector<ls_point> nodes;
     vector<ls_point> normals;
     vector<scalar_t> weight;

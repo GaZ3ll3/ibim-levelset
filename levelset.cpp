@@ -36,6 +36,20 @@ void Grid::set(scalar_t val, index_t i, index_t j, index_t k) {
     data[i * Ny * Nz + j * Nz + k] = val;
 }
 
+void Grid::output(std::string filename) {
+    std::ofstream gridFile;
+    gridFile.open(filename);
+
+    for (index_t i = 0; i < Nx; ++i) {
+        for (index_t j = 0; j < Ny; ++j) {
+            for (index_t k = 0; k < Nz; ++k) {
+                index_t I = i * Ny * Nz + j * Nz + k;
+                gridFile << data[I] << "\n";
+            }
+        }
+    }
+    gridFile.close();
+}
 
 
 levelset::levelset(index_t _Nx, index_t _Ny, index_t _Nz, index_t _band, scalar_t _sx, scalar_t _sy, scalar_t _sz, scalar_t _dx, Config& cfg) {
@@ -241,8 +255,7 @@ void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel,
             }
         }
 #pragma omp barrier
-
-        indices = countGradient(g, thickness, thres, window);
+        indices = countGradient(g, thickness, thres, window, false);
 
     }
 
@@ -353,6 +366,14 @@ void levelset::setGradient(index_t dir, scalar_t *window, ls_point &uxp, ls_poin
     uxn.data[dir] /= dx;
 }
 
+/// countGradient
+/// \param g grid
+/// \param thickness tube layer number
+/// \param thres gradient pass threshold
+/// \param _window shifting window for WENO
+/// \param display for displaying information.
+/// \return
+// todo: remove redundant input.
 index_t levelset::countGradient(Grid &g, scalar_t thickness, scalar_t thres, scalar_t* _window, bool display) {
     ls_point _Dun, _Dup;
 
@@ -381,14 +402,13 @@ index_t levelset::countGradient(Grid &g, scalar_t thickness, scalar_t thres, sca
         }
     }
     if (display) {
-        std::cout << std::setw(15) << "GRAD REL ERR" << " " << std::scientific << std::setw(8)
-                  << scalar_t(accum_error) / scalar_t(total) << std::endl;
+        std::cout << std::setw(15) << "QUALITY" << " " << std::setprecision(2) << std::setw(8)
+                  << scalar_t(accum_error) / scalar_t(total) << " & " << scalar_t(indices) / scalar_t(total)
+                  << std::endl;
     }
 
     return indices;
 }
-
-
 
 Surface::Surface(Grid& g, levelset &ls) {
 
@@ -396,6 +416,102 @@ Surface::Surface(Grid& g, levelset &ls) {
 
     scalar_t* _window =  (double*)malloc(DIM * ls.shift * sizeof(double));
     scalar_t tube_width = ls.thickness * ls.dx;
+
+    vector<short> visited((unsigned long) (ls.Nx * ls.Ny * ls.Nz), 0);
+
+    queue<int> Queue;
+    Queue.push(0);
+    visited[0] = 1;
+
+    while (!Queue.empty()) {
+        int cur_index = Queue.front();
+
+        Queue.pop();
+
+        int I = cur_index / (ls.Ny * ls.Nz);
+        int J = cur_index / ls.Nz - I * ls.Ny;
+        int K = cur_index % ls.Nz;
+        /*
+         * 6 directions to go
+         */
+        int cI, cJ, cK, next_index;
+
+        cI = I + 1;
+        cJ = J;
+        cK = K;
+        if (cI <= ls.Nx - 1) {
+            next_index = cI * ls.Ny * ls.Nz + cJ * ls.Nz + cK;
+            if (!visited[next_index] && g.data[cur_index] > -tube_width) {
+                visited[next_index] = 1;
+                Queue.push(next_index);
+            }
+        }
+
+        cI = I - 1;
+        cJ = J;
+        cK = K;
+        if (cI >= 0) {
+            next_index = cI * ls.Ny * ls.Nz + cJ * ls.Nz + cK;
+            if (!visited[next_index] && g.data[cur_index] > -tube_width) {
+                visited[next_index] = 1;
+                Queue.push(next_index);
+            }
+        }
+        cI = I;
+        cJ = J + 1;
+        cK = K;
+        if (cJ <= ls.Ny - 1) {
+            next_index = cI * ls.Ny * ls.Nz + cJ * ls.Nz + cK;
+            if (!visited[next_index] && g.data[cur_index] > -tube_width) {
+                visited[next_index] = 1;
+                Queue.push(next_index);
+            }
+        }
+        cI = I;
+        cJ = J - 1;
+        cK = K;
+        if (cJ >= 0) {
+            next_index = cI * ls.Ny * ls.Nz + cJ * ls.Nz + cK;
+            if (!visited[next_index] && g.data[cur_index] > -tube_width) {
+                visited[next_index] = 1;
+                Queue.push(next_index);
+            }
+        }
+        cI = I;
+        cJ = J;
+        cK = K + 1;
+        if (cK <= ls.Nz - 1) {
+            next_index = cI * ls.Ny * ls.Nz + cJ * ls.Nz + cK;
+            if (!visited[next_index] && g.data[cur_index] > -tube_width) {
+                visited[next_index] = 1;
+                Queue.push(next_index);
+            }
+        }
+        cI = I;
+        cJ = J;
+        cK = K - 1;
+        if (cK >= 0) {
+            next_index = cI * ls.Ny * ls.Nz + cJ * ls.Nz + cK;
+            if (!visited[next_index] && g.data[cur_index] > -tube_width) {
+                visited[next_index] = 1;
+                Queue.push(next_index);
+            }
+        }
+    }
+
+    /*
+     * set a value lying outside tube.
+     */
+    auto inclusion_value = -(1.0 + tube_width);
+    int cnt = 0;
+    for (index_t id = 0; id < ls.Nx * ls.Ny * ls.Nz; ++id) {
+        if (!visited[id] && fabs(g.data[id]) < tube_width) {
+            g.data[id] = inclusion_value;
+            cnt++;
+        }
+    }
+    std::cout << std::setw(15) << "INCLUSION" << " " << std::setw(8) << cnt << std::endl;
+
 
     for (index_t i = 0; i < ls.Nx; ++i) {
         for (index_t j = 0; j < ls.Ny; ++j) {
@@ -439,4 +555,8 @@ Surface::Surface(Grid& g, levelset &ls) {
     }
 
     free(_window);
+}
+
+Surface::~Surface() {
+
 }
