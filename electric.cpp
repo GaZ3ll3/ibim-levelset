@@ -55,7 +55,7 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
 
     index_t  N = (index_t) source.size();
 
-    scalar_t vacant_radius = dx / 5.0;
+    scalar_t vacant_radius = atof(cfg.options["tau"].c_str()) * dx;
 
     scalar_t area = std::accumulate(weight.begin(), weight.end(), 0.);
     std::cout << std::setw(15)<< "AREA APPROX" << " " << std::setw(8)<< area << " A^2" <<std::fixed<<std::endl;
