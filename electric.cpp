@@ -55,7 +55,7 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
 
     index_t  N = (index_t) source.size();
 
-    scalar_t vacant_radius = dx;
+    scalar_t vacant_radius = dx / 5.0;
 
     scalar_t area = std::accumulate(weight.begin(), weight.end(), 0.);
     std::cout << std::setw(15)<< "AREA APPROX" << " " << std::setw(8)<< area << " A^2" <<std::fixed<<std::endl;
@@ -67,7 +67,6 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
         scalar_t r = sqrt(d);
         if (r < vacant_radius) {
             return 1.0/4.0/M_PI/vacant_radius;
-            //return 0.;
         }
         else {
             return 1.0 / 4.0 / M_PI / r;
@@ -82,7 +81,6 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
         if (r < vacant_radius) {
             if (kappa == 0.) return 1.0/4.0/M_PI/vacant_radius;
             return (1 - exp(-kappa * vacant_radius))/kappa/4.0/M_PI/vacant_radius/vacant_radius;
-            //return 0.;
         }
         else {
             return exp(-kappa * r) / 4.0 / M_PI / r;
@@ -298,6 +296,35 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     polarizedEnergy *= 0.5;
 
     std::cout << "polarized energy: " << std::setw(20) << std::scientific <<polarizedEnergy <<std::fixed << std::endl;
+
+
+
+    /*
+     * test Green function integral.
+     */
+
+    Vector S(N);
+    setValue(S, 1.);
+    kernel G0;
+    G0.eval = eval_G0;
+
+    for (auto id = 0; id < N; ++id) {
+        S(id) = S(id) * weight[id];
+    }
+
+
+    G0.initialize(np, source, target, S, N, N, maxPoint, maxLevel);
+
+    Vector retG0;
+    G0.run(retG0);
+
+    std::ofstream testFile;
+    testFile.open("../data/test.txt");
+
+    for (int id = 0; id < S.row(); ++id) {
+        testFile << retG0(id) << "\n";
+    }
+    testFile.close();
 
 }
 

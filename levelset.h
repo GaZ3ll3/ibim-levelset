@@ -55,7 +55,7 @@ public:
 
 class Surface {
 public:
-    Surface(Grid& g, levelset& ls);
+    Surface(Grid &g, levelset &ls, scalar_t s);
 
     ~Surface();
     vector<ls_point> nodes;

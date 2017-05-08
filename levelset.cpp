@@ -169,7 +169,7 @@ void levelset::evolve(Grid &g, scalar_t final_t, scalar_t vel, scalar_t cfl_thre
 
 void levelset::reinitialize(Grid &g, Grid &phi0, scalar_t final_t, scalar_t vel, scalar_t cfl_thres) {
     scalar_t dt = cfl_thres * dx / vel;
-    scalar_t eps = dx * dx;
+    scalar_t eps = dx * dx; //todo:
     index_t num_steps = (index_t)(final_t / dt) + 1;
     dt = final_t / (scalar_t)num_steps;
 
@@ -413,7 +413,7 @@ index_t levelset::countGradient(Grid &g, scalar_t thickness, scalar_t thres, sca
 /// build surface, remove inclusions.
 /// \param g
 /// \param ls
-Surface::Surface(Grid& g, levelset &ls) {
+Surface::Surface(Grid &g, levelset &ls, scalar_t s) {
 
     ls_point _Dun, _Dup;
 
@@ -553,6 +553,7 @@ Surface::Surface(Grid& g, levelset &ls) {
                      *
                      */
                     weight.push_back(0.5 * (1.0 + cos(M_PI * dist/tube_width)) / tube_width);
+//                    weight.push_back((1.0 - fabs(dist)/tube_width)/tube_width);
 
 
                 }

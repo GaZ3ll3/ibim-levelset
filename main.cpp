@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     RUN("REINIT 2nd", ls.reinitialize(g, phi0, atoi(cfg.options["reinit_step"].c_str()), 1, 0.8));
 
-    Surface surf(g, ls);
+    Surface surf(g, ls, s);
 
 
 #ifdef GRID
