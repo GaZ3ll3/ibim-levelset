@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     Grid phi0(0., ls.Nx, ls.Ny, ls.Nz);
 
     RUN("EXPAND", ls.expand(mol, g, pr));
-    RUN("INWARD", ls.evolve(g, 1.4, s, 0.5));
+    RUN("INWARD", ls.evolve(g, 1.4, s, 0.2));
 
     /*
      * todo: overload scalar multiply and equal.
@@ -56,10 +56,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-
-
-    RUN("REINIT 1st", ls.reinitialize(g, phi0, atoi(cfg.options["reinit_step"].c_str()), 1, 0.8));
-
+    RUN("REINIT 1st", ls.reinitialize(g, phi0, atoi(cfg.options["reinit_step"].c_str()), 1, 0.5));
 
     for (index_t i = 0; i < ls.Nx; ++i) {
         for (index_t j = 0; j < ls.Ny; ++j) {
@@ -70,7 +67,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    RUN("REINIT 2nd", ls.reinitialize(g, phi0, atoi(cfg.options["reinit_step"].c_str()), 1, 0.8));
+    RUN("REINIT 2nd", ls.reinitialize(g, phi0, atoi(cfg.options["reinit_step"].c_str()), 1, 0.5));
 
     Surface surf(g, ls, s);
 
