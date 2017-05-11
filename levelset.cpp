@@ -51,6 +51,27 @@ void Grid::output(std::string filename) {
     gridFile.close();
 }
 
+Grid &Grid::operator*=(const scalar_t multiplier) {
+    for (int i = 0; i < Nx * Ny * Nz; ++i) {
+        this->data[i] *= multiplier;
+    }
+    return *this;
+}
+
+Grid &Grid::operator=(const Grid &other) {
+    // check size;
+    assert(other.Nx == this->Nx);
+    assert(other.Ny == this->Ny);
+    assert(other.Nz == this->Nz);
+
+    for (int i = 0; i < Nx * Ny * Nz; ++i) {
+        this->data[i] = other.data[i];
+    }
+
+    return *this;
+
+}
+
 
 levelset::levelset(index_t _Nx, index_t _Ny, index_t _Nz, index_t _band, scalar_t _sx, scalar_t _sy, scalar_t _sz, scalar_t _dx, Config& cfg) {
     dx = _dx; Nx = _Nx; Ny = _Ny; Nz = _Nz;

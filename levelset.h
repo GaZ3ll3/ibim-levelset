@@ -18,11 +18,17 @@ public:
     Grid(index_t _Nx, index_t _Ny, index_t _Nz);
     Grid(scalar_t val, index_t _Nx, index_t _Ny, index_t _Nz);
     ~Grid();
+
+    Grid &operator*=(const scalar_t multiplier);
+
+    Grid &operator=(const Grid &other);
+
     scalar_t get(index_t i, index_t j, index_t k);
     void set(scalar_t val, index_t i, index_t j, index_t k);
 
     void output(std::string filename);
 };
+
 
 class levelset {
 public:

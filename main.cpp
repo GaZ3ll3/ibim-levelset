@@ -19,6 +19,7 @@ int main(int argc, char* argv[]) {
 
     if (argc <= 1) {
         std::cout << "USE " <<argv[0] << " PATH_OF_CONFIG_FILE " << std::endl;
+        exit(0);
     }
 
     Config cfg;
@@ -43,29 +44,12 @@ int main(int argc, char* argv[]) {
     RUN("EXPAND", ls.expand(mol, g, pr));
     RUN("INWARD", ls.evolve(g, 1.4, s, 0.2));
 
-    /*
-     * todo: overload scalar multiply and equal.
-     */
-    for (index_t i = 0; i < ls.Nx; ++i) {
-        for (index_t j = 0; j < ls.Ny; ++j) {
-            for (index_t k = 0; k < ls.Nz; ++k) {
-                index_t  I = i * ls.Ny * ls.Nz + j * ls.Nz + k;
-                g.data[I] = -g.data[I];
-                phi0.data[I] = g.data[I];
-            }
-        }
-    }
+    g *= -1.0;
+    phi0 = g;
 
     RUN("REINIT 1st", ls.reinitialize(g, phi0, atoi(cfg.options["reinit_step"].c_str()), 1, 0.5));
 
-    for (index_t i = 0; i < ls.Nx; ++i) {
-        for (index_t j = 0; j < ls.Ny; ++j) {
-            for (index_t k = 0; k < ls.Nz; ++k) {
-                index_t  I = i * ls.Ny * ls.Nz + j * ls.Nz + k;
-                phi0.data[I] = g.data[I];
-            }
-        }
-    }
+    phi0 = g;
 
     RUN("REINIT 2nd", ls.reinitialize(g, phi0, atoi(cfg.options["reinit_step"].c_str()), 1, 0.5));
 
