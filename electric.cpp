@@ -66,7 +66,7 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
         scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
         scalar_t r = sqrt(d);
         if (r < vacant_radius) {
-            return 1.0/4.0/M_PI/vacant_radius;
+            return 1.0 / 2.0 / M_PI / vacant_radius;
         }
         else {
             return 1.0 / 4.0 / M_PI / r;
@@ -80,7 +80,7 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
         scalar_t r = sqrt(d);
         if (r < vacant_radius) {
             if (kappa == 0.) return 1.0/4.0/M_PI/vacant_radius;
-            return (1 - exp(-kappa * vacant_radius))/kappa/4.0/M_PI/vacant_radius/vacant_radius;
+            return (1 - exp(-kappa * vacant_radius)) / kappa / 2.0 / M_PI / vacant_radius / vacant_radius;
         }
         else {
             return exp(-kappa * r) / 4.0 / M_PI / r;
@@ -129,7 +129,335 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
         else return -(a.z - b.z) * exp(-kappa * r) * (kappa * r + 1) / 4.0 / M_PI / r / d;
     };
 
-    auto maping = [&](vector<point>& _source, vector<point>& _target, vector<scalar_t>& _weight,
+/*
+ *  dBIE, singular part can be regularized as anything, e.g. 0. First order is observed.
+ */
+    auto K1x = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+
+        if (r < vacant_radius) return 0.;
+        else return (a.x - b.x) * (dE / dI * exp(-kappa * r) * (kappa * r + 1) - 1.) / 4.0 / M_PI / r / d;
+    };
+
+    auto K1y = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+
+        if (r < vacant_radius) return 0.;
+        else return (a.y - b.y) * (dE / dI * exp(-kappa * r) * (kappa * r + 1) - 1.) / 4.0 / M_PI / r / d;
+    };
+
+    auto K1z = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+
+        if (r < vacant_radius) return 0.;
+        else return (a.z - b.z) * (dE / dI * exp(-kappa * r) * (kappa * r + 1) - 1.) / 4.0 / M_PI / r / d;
+    };
+
+    auto K2 = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+        if (r < vacant_radius) {
+            if (kappa == 0.) return 0.;
+            return (exp(-kappa * vacant_radius) - 1.0 + kappa * vacant_radius) / kappa / 2.0 / M_PI / vacant_radius /
+                   vacant_radius;
+        } else {
+            return (1.0 - exp(-kappa * r)) / 4.0 / M_PI / r;
+        }
+    };
+
+    auto K3xx = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+
+        scalar_t df1 = a.x - b.x;
+        scalar_t df2 = a.x - b.x;
+        scalar_t delta = 1.0;
+
+
+        scalar_t t = kappa * r;
+
+        if (r < vacant_radius) {
+            return 0.;
+        } else {
+            return (1 - exp(-t) * (t + 1)) * delta / d / r +
+                   (exp(-t) * ((t + 3) * t + 3) - 3.0) * df1 * df2 / d / d / r;
+        }
+    };
+
+    auto K3yy = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+
+        scalar_t df1 = a.y - b.y;
+        scalar_t df2 = a.y - b.y;
+        scalar_t delta = 1.0;
+
+
+        scalar_t t = kappa * r;
+
+        if (r < vacant_radius) {
+            return 0.;
+        } else {
+            return (1 - exp(-t) * (t + 1)) * delta / d / r +
+                   (exp(-t) * ((t + 3) * t + 3) - 3.0) * df1 * df2 / d / d / r;
+        }
+    };
+
+    auto K3zz = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+
+        scalar_t df1 = a.z - b.z;
+        scalar_t df2 = a.z - b.z;
+        scalar_t delta = 1.0;
+
+
+        scalar_t t = kappa * r;
+
+        if (r < vacant_radius) {
+            return 0.;
+        } else {
+            return (1 - exp(-t) * (t + 1)) * delta / d / r +
+                   (exp(-t) * ((t + 3) * t + 3) - 3.0) * df1 * df2 / d / d / r;
+        }
+    };
+
+    auto K3xy = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+
+        scalar_t df1 = a.x - b.x;
+        scalar_t df2 = a.y - b.y;
+        scalar_t delta = 1.0;
+
+
+        scalar_t t = kappa * r;
+
+        if (r < vacant_radius) {
+            return 0.;
+        } else {
+            return (exp(-t) * ((t + 3) * t + 3) - 3.0) * df1 * df2 / d / d / r;
+        }
+    };
+
+    auto K3yz = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+
+        scalar_t df1 = a.y - b.y;
+        scalar_t df2 = a.z - b.z;
+        scalar_t delta = 1.0;
+
+
+        scalar_t t = kappa * r;
+
+        if (r < vacant_radius) {
+            return 0.;
+        } else {
+            return (exp(-t) * ((t + 3) * t + 3) - 3.0) * df1 * df2 / d / d / r;
+        }
+    };
+
+    auto K3zx = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+
+        scalar_t df1 = a.z - b.z;
+        scalar_t df2 = a.x - b.x;
+        scalar_t delta = 1.0;
+
+
+        scalar_t t = kappa * r;
+
+        if (r < vacant_radius) {
+            return 0.;
+        } else {
+            return (exp(-t) * ((t + 3) * t + 3) - 3.0) * df1 * df2 / d / d / r;
+        }
+    };
+
+
+    auto K3yx = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+
+        scalar_t df1 = a.x - b.x;
+        scalar_t df2 = a.y - b.y;
+        scalar_t delta = 1.0;
+
+
+        scalar_t t = kappa * r;
+
+        if (r < vacant_radius) {
+            return 0.;
+        } else {
+            return (exp(-t) * ((t + 3) * t + 3) - 3.0) * df1 * df2 / d / d / r;
+        }
+    };
+
+    auto K3zy = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+
+        scalar_t df1 = a.y - b.y;
+        scalar_t df2 = a.z - b.z;
+        scalar_t delta = 1.0;
+
+
+        scalar_t t = kappa * r;
+
+        if (r < vacant_radius) {
+            return 0.;
+        } else {
+            return (exp(-t) * ((t + 3) * t + 3) - 3.0) * df1 * df2 / d / d / r;
+        }
+    };
+
+    auto K3xz = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+
+        scalar_t df1 = a.z - b.z;
+        scalar_t df2 = a.x - b.x;
+        scalar_t delta = 1.0;
+
+
+        scalar_t t = kappa * r;
+
+        if (r < vacant_radius) {
+            return 0.;
+        } else {
+            return (exp(-t) * ((t + 3) * t + 3) - 3.0) * df1 * df2 / d / d / r;
+        }
+    };
+
+
+    auto K4x = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+
+        if (r < vacant_radius) return 0.;
+        else return -(a.x - b.x) * (dI / dE * exp(-kappa * r) * (kappa * r + 1) - 1.) / 4.0 / M_PI / r / d;
+    };
+
+    auto K4y = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+
+        if (r < vacant_radius) return 0.;
+        else return -(a.y - b.y) * (dI / dE * exp(-kappa * r) * (kappa * r + 1) - 1.) / 4.0 / M_PI / r / d;
+    };
+
+    auto K4z = [&](point &a, point &b) {
+        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
+        scalar_t r = sqrt(d);
+
+        if (r < vacant_radius) return 0.;
+        else return -(a.z - b.z) * (dI / dE * exp(-kappa * r) * (kappa * r + 1) - 1.) / 4.0 / M_PI / r / d;
+    };
+
+
+    auto dmapping = [&](vector<point> &_source, vector<point> &_target, vector<scalar_t> &_weight,
+                        vector<scalar_t> &_normalX, vector<scalar_t> &_normalY, vector<scalar_t> &_normalZ,
+                        Vector &_phi) {
+        index_t _N = (index_t) _source.size();
+        assert(_phi.row() == 2 * _N);
+        kernel _K1x, _K1y, _K1z, _K2, _K3xx, _K3yy, _K3zz, _K3xy, _K3yz, _K3zx, _K3yx, _K3xz, _K3zy, _K4x, _K4y, _K4z;
+
+        _K1x.eval = K1x;
+        _K1y.eval = K1y;
+        _K1z.eval = K1z;
+
+        _K2.eval = K2;
+        _K3xx.eval = K3xx;
+        _K3yy.eval = K3yy;
+        _K3zz.eval = K3zz;
+        _K3xy.eval = K3xy;
+        _K3yz.eval = K3yz;
+        _K3zx.eval = K3zx;
+        _K3yx.eval = K3yx;
+        _K3zy.eval = K3zy;
+        _K3xz.eval = K3xz;
+
+        _K4x.eval = K4x;
+        _K4y.eval = K4y;
+        _K4z.eval = K4z;
+
+
+        Vector pphi_pn(_N);
+        Vector phiX(_N), phiY(_N), phiZ(_N);
+
+        for (auto id = 0; id < _N; ++id) {
+            pphi_pn(id) = _phi(id + _N) * _weight[id];
+            phiX(id) = _phi(id) * _normalX[id] * _weight[id];
+            phiY(id) = _phi(id) * _normalY[id] * _weight[id];
+            phiZ(id) = _phi(id) * _normalZ[id] * _weight[id];
+        }
+
+        // todo: check all charges.
+
+        _K1x.initialize(np, _source, _target, phiX, _N, _N, maxPoint, maxLevel);
+        _K1y.initialize(np, _source, _target, phiY, _N, _N, maxPoint, maxLevel);
+        _K1z.initialize(np, _source, _target, phiZ, _N, _N, maxPoint, maxLevel);
+        _K2.initialize(np, _source, _target, pphi_pn, _N, _N, maxPoint, maxLevel);
+        _K3xx.initialize(np, _source, _target, phiX, _N, _N, maxPoint, maxLevel);
+        _K3yy.initialize(np, _source, _target, phiY, _N, _N, maxPoint, maxLevel);
+        _K3zz.initialize(np, _source, _target, phiZ, _N, _N, maxPoint, maxLevel);
+        _K3xy.initialize(np, _source, _target, phiX, _N, _N, maxPoint, maxLevel);
+        _K3yz.initialize(np, _source, _target, phiY, _N, _N, maxPoint, maxLevel);
+        _K3zx.initialize(np, _source, _target, phiZ, _N, _N, maxPoint, maxLevel);
+        _K3yx.initialize(np, _source, _target, phiY, _N, _N, maxPoint, maxLevel);
+        _K3zy.initialize(np, _source, _target, phiZ, _N, _N, maxPoint, maxLevel);
+        _K3xz.initialize(np, _source, _target, phiX, _N, _N, maxPoint, maxLevel);
+        _K4x.initialize(np, _source, _target, pphi_pn, _N, _N, maxPoint, maxLevel);
+        _K4y.initialize(np, _source, _target, pphi_pn, _N, _N, maxPoint, maxLevel);
+        _K4z.initialize(np, _source, _target, pphi_pn, _N, _N, maxPoint, maxLevel);
+
+        Vector ret1x, ret1y, ret1z, ret2, ret3xx, ret3yy, ret3zz, ret3xy, ret3yz, ret3zx, ret3yx, ret3zy, ret3xz, ret4x, ret4y, ret4z;
+
+        _K1x.run(ret1x);
+        _K1y.run(ret1y);
+        _K1z.run(ret1z);
+        _K2.run(ret2);
+        _K3xx.run(ret3xx);
+        _K3yy.run(ret3yy);
+        _K3zz.run(ret3zz);
+        _K3xy.run(ret3xy);
+        _K3yx.run(ret3yx);
+        _K3xz.run(ret3xz);
+        _K3zx.run(ret3zx);
+        _K3yz.run(ret3yz);
+        _K3zy.run(ret3zy);
+        _K4x.run(ret4x);
+        _K4y.run(ret4y);
+        _K4z.run(ret4z);
+
+        Vector tmp1(_N), tmp2(_N);
+
+        for (auto id = 0; id < _N; ++id) {
+            tmp1(id) = normalX[id] * (ret3xx(id) + ret3yx(id) + ret3zx(id)) +
+                       normalY[id] * (ret3yy(id) + ret3xy(id) + ret3zy(id)) +
+                       normalZ[id] * (ret3zz(id) + ret3xz(id) + ret3yz(id));
+
+            tmp2(id) = normalX[id] * ret4x(id) + normalY[id] * ret4y(id) + normalZ[id] * ret4z(id);
+        }
+
+        Vector output(2 * _N);
+
+        for (auto id = 0; id < _N; ++id) {
+            output(id) = 0.5 * (1 + dE / dI) * _phi(id) + ret1x(id) + ret1y(id) + ret1z(id) - ret2(id);
+            output(id + _N) = 0.5 * (1 + dI / dE) * _phi(id + _N) + tmp1(id) - tmp2(id);
+        }
+
+        return output;
+
+    };
+
+
+    auto mapping = [&](vector<point> &_source, vector<point> &_target, vector<scalar_t> &_weight,
                       vector<scalar_t>& _normalX,  vector<scalar_t>& _normalY, vector<scalar_t>& _normalZ, Vector& _phi) {
         index_t _N = (index_t) _source.size();
         assert(_phi.row() == 2 * _N);
@@ -178,7 +506,7 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     };
 
     auto FullMap = [&](Vector& phi) {
-        return maping(source, target, weight, normalX, normalY, normalZ, phi);
+        return dmapping(source, target, weight, normalX, normalY, normalZ, phi);
     };
 
 
@@ -193,6 +521,10 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
 
             scalar_t r = sqrt(d);
             load(id) += mol.charges[atom_id] / dI / 4.0 / M_PI / r;
+            load(id + N) -= mol.charges[atom_id] / dI / 4.0 / M_PI / d / r *
+                            (normalX[id] * (source[id].x - mol.centers[atom_id].data[0] / rescale) +
+                             normalY[id] * (source[id].y - mol.centers[atom_id].data[1] / rescale) +
+                             normalZ[id] * (source[id].z - mol.centers[atom_id].data[2] / rescale));
         }
     }
 

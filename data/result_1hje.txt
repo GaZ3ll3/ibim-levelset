@@ -22,3 +22,7 @@ Grid   DOF      Threshold   GRAD ERR  Thickness  GMRES Threshold   Iteration   T
 320    647644    1E-3        2.1E-4       3            1E-3         --          174                     830.52             MEMORY ERROR
 
 
+
+=== dBIE ===
+128    --                                                           20         190                                        -3.03456e-02
+
