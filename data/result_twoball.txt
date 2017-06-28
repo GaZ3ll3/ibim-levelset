@@ -12,3 +12,7 @@ Grid     Threshold     Grad Err    Thickness     GMRES Threshold     Iteration  
 128      1E-3          4.0E-4       3            3e-4                10            15                18.802   --            -6.67159E-3
 160      1E-3          2.0E-5       3            3E-4                -             33                18.797   --
 320      1E-3          1.0E-5       3            3E-4                -             131               18.790   --
+
+
+
+128      1E-3          4.5E-5       2            1E-5                13            39(*)             18.793   --            -6.666742e-3

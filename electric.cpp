@@ -629,35 +629,6 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
 
     std::cout << "polarized energy: " << std::setw(20) << std::scientific <<polarizedEnergy <<std::fixed << std::endl;
 
-
-
-    /*
-     * test Green function integral.
-     */
-
-    Vector S(N);
-    setValue(S, 1.);
-    kernel G0;
-    G0.eval = eval_G0;
-
-    for (auto id = 0; id < N; ++id) {
-        S(id) = S(id) * weight[id];
-    }
-
-
-    G0.initialize(np, source, target, S, N, N, maxPoint, maxLevel);
-
-    Vector retG0;
-    G0.run(retG0);
-
-    std::ofstream testFile;
-    testFile.open("../data/test.txt");
-
-    for (int id = 0; id < S.row(); ++id) {
-        testFile << retG0(id) << "\n";
-    }
-    testFile.close();
-
 }
 
 
