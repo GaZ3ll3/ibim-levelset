@@ -24,5 +24,7 @@ Grid   DOF      Threshold   GRAD ERR  Thickness  GMRES Threshold   Iteration   T
 
 
 === dBIE ===
-128    --                                                           20         190                                        -3.03456e-02
+256                                                    1E-5         33         190                                        -3.04277e-2
+128    --                                                           32         47                                         -3.03500e-2
+64                                                                  30         10                                         -3.04400e-2
 
