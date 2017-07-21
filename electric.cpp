@@ -61,74 +61,6 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     std::cout << std::setw(15)<< "AREA APPROX" << " " << std::setw(8)<< area << " A^2" <<std::fixed<<std::endl;
 
 
-
-    auto eval_G0 = [&](point& a, point& b) {
-        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
-        scalar_t r = sqrt(d);
-        if (r < vacant_radius) {
-            return 1.0 / 2.0 / M_PI / vacant_radius;
-        }
-        else {
-            return 1.0 / 4.0 / M_PI / r;
-        }
-
-    };
-
-
-    auto eval_Gk = [&](point& a, point& b) {
-        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
-        scalar_t r = sqrt(d);
-        if (r < vacant_radius) {
-            if (kappa == 0.) return 1.0/4.0/M_PI/vacant_radius;
-            return (1 - exp(-kappa * vacant_radius)) / kappa / 2.0 / M_PI / vacant_radius / vacant_radius;
-        }
-        else {
-            return exp(-kappa * r) / 4.0 / M_PI / r;
-        }
-    };
-
-    auto eval_pG0x = [&](point& a, point& b) {
-        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
-        scalar_t r = sqrt(d);
-        if (r < vacant_radius) return 0.;
-        else return -(a.x  - b.x) / 4.0 / M_PI / r / d;
-    };
-
-    auto eval_pG0y = [&](point& a, point& b){
-        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
-        scalar_t r = sqrt(d);
-        if (r < vacant_radius) return 0.;
-        else return -(a.y - b.y) / 4.0 / M_PI / r / d;
-    };
-
-    auto eval_pG0z = [&](point& a, point& b) {
-        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
-        scalar_t r = sqrt(d);
-        if (r < vacant_radius) return 0.;
-        else return -(a.z - b.z) / 4.0 / M_PI / r / d;
-    };
-
-    auto eval_pGkx = [&](point& a, point& b) {
-        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
-        scalar_t r = sqrt(d);
-        if (r < vacant_radius) return 0.;
-        else return -(a.x - b.x) * exp(-kappa * r) * (kappa * r + 1) / 4.0 / M_PI / r / d;
-    };
-
-    auto eval_pGky = [&](point& a, point& b) {
-        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
-        scalar_t r = sqrt(d);
-        if (r < vacant_radius) return 0.;
-        else return -(a.y - b.y) * exp(-kappa * r) * (kappa * r + 1) / 4.0 / M_PI / r / d;
-    };
-
-    auto eval_pGkz = [&](point& a, point& b) {
-        scalar_t d = SQR(a.x - b.x) + SQR(a.y - b.y) + SQR(a.z - b.z);
-        scalar_t r = sqrt(d);
-        if (r < vacant_radius) return 0.;
-        else return -(a.z - b.z) * exp(-kappa * r) * (kappa * r + 1) / 4.0 / M_PI / r / d;
-    };
-
 /*
  *  dBIE, singular part can be regularized as anything, e.g. 0. First order is observed.
  */
@@ -175,7 +107,6 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
         scalar_t df1 = a.x - b.x;
         scalar_t df2 = a.x - b.x;
         scalar_t delta = 1.0;
-
 
         scalar_t t = kappa * r;
 
@@ -363,7 +294,7 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     auto dmapping = [&](vector<point> &_source, vector<point> &_target, vector<scalar_t> &_weight,
                         vector<scalar_t> &_normalX, vector<scalar_t> &_normalY, vector<scalar_t> &_normalZ,
                         Vector &_phi) {
-        index_t _N = (index_t) _source.size();
+        auto _N = (index_t) _source.size();
         assert(_phi.row() == 2 * _N);
         kernel _K1x, _K1y, _K1z, _K2, _K3xx, _K3yy, _K3zz, _K3xy, _K3yz, _K3zx, _K3yx, _K3xz, _K3zy, _K4x, _K4y, _K4z;
 
@@ -456,55 +387,6 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
 
     };
 
-
-    auto mapping = [&](vector<point> &_source, vector<point> &_target, vector<scalar_t> &_weight,
-                      vector<scalar_t>& _normalX,  vector<scalar_t>& _normalY, vector<scalar_t>& _normalZ, Vector& _phi) {
-        index_t _N = (index_t) _source.size();
-        assert(_phi.row() == 2 * _N);
-        kernel G0, Gk, pG0x, pG0y, pG0z, pGkx, pGky, pGkz;
-
-        G0.eval = eval_G0; Gk.eval = eval_Gk;
-        pG0x.eval = eval_pG0x; pG0y.eval = eval_pG0y;
-        pG0z.eval = eval_pG0z; pGkx.eval = eval_pGkx;
-        pGky.eval = eval_pGky; pGkz.eval = eval_pGkz;
-
-
-        Vector pphi_pn(_N);
-        Vector phiX(_N), phiY(_N), phiZ(_N);
-
-        for (auto id = 0; id < _N; ++id) {
-            pphi_pn(id) = _phi(id + _N) * _weight[id];
-            phiX(id)    = _phi(id) * _normalX[id] * _weight[id];
-            phiY(id)    = _phi(id) * _normalY[id] * _weight[id];
-            phiZ(id)    = _phi(id) * _normalZ[id] * _weight[id];
-        }
-
-        G0.initialize(np, _source, _target, pphi_pn, _N, _N, maxPoint, maxLevel);
-        pG0x.initialize(np, _source, _target, phiX, _N, _N, maxPoint, maxLevel);
-        pG0y.initialize(np, _source, _target, phiY, _N, _N, maxPoint, maxLevel);
-        pG0z.initialize(np, _source, _target, phiZ, _N, _N, maxPoint, maxLevel);
-
-        Gk.initialize(np, _source, _target, pphi_pn, _N, _N, maxPoint, maxLevel);
-        pGkx.initialize(np, _source, _target, phiX, _N, _N, maxPoint, maxLevel);
-        pGky.initialize(np, _source, _target, phiY, _N, _N, maxPoint, maxLevel);
-        pGkz.initialize(np, _source, _target, phiZ, _N, _N, maxPoint, maxLevel);
-
-        Vector retG0, retGk, retG0X, retG0Y, retG0Z, retGkX, retGkY, retGkZ;
-        G0.run(retG0); Gk.run(retGk);
-        pG0x.run(retG0X); pG0y.run(retG0Y);
-        pG0z.run(retG0Z); pGkx.run(retGkX);
-        pGky.run(retGkY); pGkz.run(retGkZ);
-
-        Vector output(2 * _N);
-
-        for (auto id = 0; id < _N; ++id) {
-            output(id) = 0.5 * _phi(id) + retG0X(id) + retG0Y(id) + retG0Z(id) - retG0(id);
-            output(id + _N) = 0.5 * _phi(id) - retGkX(id) - retGkY(id) - retGkZ(id) + dI/dE * retGk(id);
-        }
-
-        return output;
-    };
-
     auto FullMap = [&](Vector& phi) {
         return dmapping(source, target, weight, normalX, normalY, normalZ, phi);
     };
@@ -549,12 +431,9 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     vector<point> target_centers;
 
     for (int id = 0; id < mol.N; ++id) {
-        target_centers.push_back(
-                {
-                    mol.centers[id].data[0]/rescale,
-                    mol.centers[id].data[1]/rescale,
-                    mol.centers[id].data[2]/rescale
-                }
+        target_centers.emplace_back(mol.centers[id].data[0] / rescale, mol.centers[id].data[1] / rescale,
+                                    mol.centers[id].data[2] / rescale
+
         );
 
     }
@@ -562,16 +441,17 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
     auto polarizeMap = [&](vector<point>& _source, vector<point>& _target, vector<scalar_t>& _weight,
                            vector<scalar_t>& _normalX,  vector<scalar_t>& _normalY, vector<scalar_t>& _normalZ, Vector& _phi) {
 
-        index_t _N = (index_t) _source.size();
-        index_t _M = (index_t) _target.size();
-
+        auto _N = (index_t) _source.size();
+        auto _M = (index_t) _target.size();
         assert(_phi.row() == 2 * _N);
-        kernel G0, Gk, pG0x, pG0y, pG0z, pGkx, pGky, pGkz;
+        kernel _K1x, _K1y, _K1z, _K2;
 
-        G0.eval = eval_G0; Gk.eval = eval_Gk;
-        pG0x.eval = eval_pG0x; pG0y.eval = eval_pG0y;
-        pG0z.eval = eval_pG0z; pGkx.eval = eval_pGkx;
-        pGky.eval = eval_pGky; pGkz.eval = eval_pGkz;
+
+        _K1x.eval = K1x;
+        _K1y.eval = K1y;
+        _K1z.eval = K1z;
+
+        _K2.eval = K2;
 
 
         Vector pphi_pn(_N);
@@ -584,27 +464,21 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
             phiZ(id)    = _phi(id) * _normalZ[id] * _weight[id];
         }
 
-        G0.initialize(np, _source, _target, pphi_pn, _N, _M, maxPoint, maxLevel);
-        pG0x.initialize(np, _source, _target, phiX, _N, _M, maxPoint, maxLevel);
-        pG0y.initialize(np, _source, _target, phiY, _N, _M, maxPoint, maxLevel);
-        pG0z.initialize(np, _source, _target, phiZ, _N, _M, maxPoint, maxLevel);
+        _K1x.initialize(np, _source, _target, phiX, _N, _M, maxPoint, maxLevel);
+        _K1y.initialize(np, _source, _target, phiY, _N, _M, maxPoint, maxLevel);
+        _K1z.initialize(np, _source, _target, phiZ, _N, _M, maxPoint, maxLevel);
+        _K2.initialize(np, _source, _target, pphi_pn, _N, _M, maxPoint, maxLevel);
 
-        Gk.initialize(np, _source, _target, pphi_pn, _N, _M, maxPoint, maxLevel);
-        pGkx.initialize(np, _source, _target, phiX, _N, _M, maxPoint, maxLevel);
-        pGky.initialize(np, _source, _target, phiY, _N, _M, maxPoint, maxLevel);
-        pGkz.initialize(np, _source, _target, phiZ, _N, _M, maxPoint, maxLevel);
 
-        Vector retG0, retGk, retG0X, retG0Y, retG0Z, retGkX, retGkY, retGkZ;
-        G0.run(retG0); Gk.run(retGk);
-        pG0x.run(retG0X); pG0y.run(retG0Y);
-        pG0z.run(retG0Z); pGkx.run(retGkX);
-        pGky.run(retGkY); pGkz.run(retGkZ);
-
+        Vector ret1x, ret1y, ret1z, ret2;
+        _K1x.run(ret1x);
+        _K1y.run(ret1y);
+        _K1z.run(ret1z);
+        _K2.run(ret2);
         Vector output(_M); setValue(output, 0.);
 
         for (auto id = 0; id < _M; ++id) {
-            output(id) = dE / dI * (retGkX(id) + retGkY(id) + retGkZ(id)) - retG0X(id) - retG0Y(id)
-                                    - retG0Z(id) + retG0(id) - retGk(id);
+            output(id) = ret2(id) - (ret1x(id) + ret1y(id) + ret1z(id));
         }
         return output;
     };
