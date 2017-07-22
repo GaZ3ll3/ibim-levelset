@@ -379,8 +379,8 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
         Vector output(2 * _N);
 
         for (auto id = 0; id < _N; ++id) {
-            output(id) = 0.5 * (1 + dE / dI) * _phi(id) + ret1x(id) + ret1y(id) + ret1z(id) - ret2(id);
-            output(id + _N) = 0.5 * (1 + dI / dE) * _phi(id + _N) + tmp1(id) - tmp2(id);
+            output(id) = _phi(id) + (ret1x(id) + ret1y(id) + ret1z(id) - ret2(id)) / (0.5 * (1 + dE / dI));
+            output(id + _N) = _phi(id + _N) + (tmp1(id) - tmp2(id)) / (0.5 * (1 + dI / dE));
         }
 
         return output;
@@ -402,11 +402,12 @@ void electric(Grid& g, levelset& ls, Surface& surf, Molecule& mol, scalar_t resc
                          SQR(source[id].z - mol.centers[atom_id].data[2] / rescale);
 
             scalar_t r = sqrt(d);
-            load(id) += mol.charges[atom_id] / dI / 4.0 / M_PI / r;
+            load(id) += mol.charges[atom_id] / dI / 4.0 / M_PI / r / (0.5 * (1 + dE / dI));
             load(id + N) -= mol.charges[atom_id] / dI / 4.0 / M_PI / d / r *
                             (normalX[id] * (source[id].x - mol.centers[atom_id].data[0] / rescale) +
                              normalY[id] * (source[id].y - mol.centers[atom_id].data[1] / rescale) +
-                             normalZ[id] * (source[id].z - mol.centers[atom_id].data[2] / rescale));
+                             normalZ[id] * (source[id].z - mol.centers[atom_id].data[2] / rescale)) /
+                            (0.5 * (1 + dI / dE));
         }
     }
 
