@@ -588,3 +588,14 @@ Surface::Surface(Grid &g, levelset &ls, scalar_t s) {
 Surface::~Surface() {
 
 }
+
+
+void Surface::output(std::string filename) {
+    std::ofstream nodeFile;
+    nodeFile.open(filename);
+
+    for (index_t i = 0; i < nodes.size(); ++i) {
+        nodeFile << nodes[i].data[0] << " " << nodes[i].data[1] << " " << nodes[i].data[2] << "\n";
+    }
+    nodeFile.close();
+}

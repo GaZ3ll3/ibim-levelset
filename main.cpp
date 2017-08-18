@@ -57,7 +57,8 @@ int main(int argc, char* argv[]) {
 
 
 #ifdef GRID
-    g.output("../data/test.grid");
+    g.output("../data/output.grid");
+    surf.output("../data/output.node");
 #endif
 
 

@@ -67,6 +67,8 @@ public:
     vector<ls_point> nodes;
     vector<ls_point> normals;
     vector<scalar_t> weight;
+
+    void output(std::string filename);
 };
 
 
