@@ -30,8 +30,12 @@ int main(int argc, char* argv[]) {
 
     Molecule mol; mol.load(cfg.options["pqr_file"]);
 
-    scalar_t s = mol.centralize(200.0); mol.getCenter();
+    scalar_t s = mol.centralize(240.0);
+    mol.getCenter();
     scalar_t pr = 1.4 * s;
+
+    std::cout << std::setw(15) << "1 Angstrom" << " " << std::setw(8) << s << " grids" << std::endl;
+
     scalar_t grid_lo = -300.0, grid_hi = 300;
     index_t size = atoi(cfg.options["grid_size"].c_str());
     scalar_t dx = (grid_hi - grid_lo) / scalar_t(size);
