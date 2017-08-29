@@ -34,11 +34,13 @@ int main(int argc, char* argv[]) {
     mol.getCenter();
     scalar_t pr = 1.4 * s;
 
-    std::cout << std::setw(15) << "1 Angstrom" << " " << std::setw(8) << s << " grids" << std::endl;
 
     scalar_t grid_lo = -300.0, grid_hi = 300;
     index_t size = atoi(cfg.options["grid_size"].c_str());
     scalar_t dx = (grid_hi - grid_lo) / scalar_t(size);
+
+    std::cout << std::setw(15) << "h" << " " << std::setw(8) << dx / s << " Angstroms" << std::endl;
+
 
     levelset ls(size, size, size, 8, grid_lo, grid_lo, grid_lo, dx, cfg);
 
