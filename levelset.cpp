@@ -524,9 +524,9 @@ Surface::Surface(Grid &g, levelset &ls, scalar_t s) {
     }
 
     /*
-     * set a value lying outside tube.
+     * set a value lying outside tube, epsilon
      */
-    auto inclusion_value = -(1. + tube_width);
+    auto inclusion_value = -(tube_width + 1e-15);
     int cnt = 0;
     for (index_t id = 0; id < ls.Nx * ls.Ny * ls.Nz; ++id) {
         if (!visited[id] && fabs(g.data[id]) < tube_width) {
