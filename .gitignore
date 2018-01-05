@@ -91,4 +91,4 @@ dkms.conf
 .gitignore
 .idea/
 cmake-build-debug/
-
+data/
